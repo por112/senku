@@ -6,8 +6,8 @@ const FILES_TO_CACHE = [
   '/index.html',
   '/offline.html',
   '/favicon.ico',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/33-192x192.png',
+  '/44-512x512.png',
   // เพิ่มไฟล์ CSS/JS หลักที่คุณใช้งานลงตรงนี้ได้ เช่น '/src/main.jsx', '/src/index.css'
 ];
 
