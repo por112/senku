@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SCIENCE RUN</title>
+<style>
+:root{
+  --lab-dark:#0c1b24;
+  --lab-panel:#123241;
+  --lab-panel-2:#1a4256;
+  --glow-green:#7bffb0;
+  --glow-green-dim:#3ec98a;
+  --hazard:#ffb547;
+  --hazard-dim:#c98a34;
+  --danger:#ff5d5d;
+  --chalk:#eaf6f2;
+  --chalk-dim:#a9c4bd;
+  --coin:#ffd76b;
+  --font-display:'Trebuchet MS','Segoe UI',sans-serif;
+  --font-body:'Segoe UI',Tahoma,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{
+  margin:0;padding:0;width:100%;height:100%;overflow:hidden;
+  background:var(--lab-dark);
+  font-family:var(--font-body);
+  color:var(--chalk);
+}
+body{
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(123,255,176,0.08), transparent 45%),
+    radial-gradient(ellipse at 85% 80%, rgba(255,181,71,0.07), transparent 45%),
+    linear-gradient(180deg,#0c1b24 0%, #0a151c 100%);
+}
+#app{
+  position:relative;width:100vw;height:100vh;
+  max-width:100vw;max-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+}
+.screen{
+  position:absolute;inset:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;
+  padding:20px;
+  animation:fadeIn .25s ease;
+}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* -------- decorative lab grid -------- */
+.labgrid{
+  position:absolute;inset:0;pointer-events:none;opacity:.15;
+  background-image:
+    linear-gradient(var(--glow-green-dim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--glow-green-dim) 1px, transparent 1px);
+  background-size:38px 38px;
+  mask-image:radial-gradient(ellipse at center, black 40%, transparent 80%);
+}
+
+.brand{
+  font-family:var(--font-display);
+  font-weight:800;
+  letter-spacing:3px;
+  font-size:clamp(28px,7vw,46px);
+  color:var(--chalk);
+  text-shadow:0 0 18px rgba(123,255,176,.55), 0 0 2px rgba(123,255,176,.8);
+  display:flex;align-items:center;gap:10px;
+}
+.brand .beaker{font-size:.9em;filter:drop-shadow(0 0 8px var(--glow-green));}
+.tagline{color:var(--chalk-dim);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:-10px;}
+
+.panel{
+  position:relative;
+  background:linear-gradient(180deg, var(--lab-panel), #0e2a36);
+  border:1px solid rgba(123,255,176,0.25);
+  border-radius:14px;
+  padding:26px 28px;
+  width:min(340px,88vw);
+  box-shadow:0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+}
+.panel::before{
+  content:"";position:absolute;top:0;left:14px;right:14px;height:2px;
+  background:linear-gradient(90deg, transparent, var(--glow-green), transparent);
+  opacity:.7;
+}
+
+label{font-size:12px;color:var(--chalk-dim);letter-spacing:1px;text-transform:uppercase;display:block;margin:12px 0 6px;}
+input[type=text],input[type=password]{
+  width:100%;padding:11px 12px;border-radius:8px;border:1px solid rgba(123,255,176,.25);
+  background:rgba(255,255,255,0.04);color:var(--chalk);font-size:15px;outline:none;
+}
+input:focus{border-color:var(--glow-green);box-shadow:0 0 0 3px rgba(123,255,176,.15);}
+
+button{
+  font-family:var(--font-display);
+  cursor:pointer;border:none;border-radius:9px;
+  font-weight:700;letter-spacing:.5px;
+  transition:transform .1s ease, filter .15s ease, box-shadow .15s ease;
+}
+button:active{transform:scale(.96);}
+.btn-primary{
+  background:linear-gradient(180deg, var(--glow-green), var(--glow-green-dim));
+  color:#062a1c;padding:12px 18px;font-size:15px;width:100%;margin-top:16px;
+  box-shadow:0 6px 0 #1e6b47, 0 8px 18px rgba(123,255,176,.25);
+}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-secondary{
+  background:rgba(255,255,255,0.06);color:var(--chalk);
+  border:1px solid rgba(234,246,242,.25);
+  padding:10px 16px;font-size:13px;width:100%;margin-top:10px;
+}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);}
+.btn-hazard{
+  background:linear-gradient(180deg, var(--hazard), var(--hazard-dim));
+  color:#3a2100;box-shadow:0 6px 0 #8a5c1f;
+}
+.link-row{display:flex;gap:8px;width:100%;}
+.link-row button{flex:1;}
+.error-msg{color:var(--danger);font-size:12px;min-height:16px;text-align:center;}
+
+/* -------- main menu -------- */
+.menu-card{text-align:center;}
+.player-tag{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  color:var(--chalk-dim);font-size:13px;margin-bottom:4px;
+}
+.player-tag b{color:var(--glow-green);font-size:16px;}
+.stat-row{display:flex;gap:10px;justify-content:center;margin:10px 0 4px;}
+.stat-chip{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(123,255,176,.2);
+  border-radius:20px;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;
+}
+.menu-buttons{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:14px;}
+.menu-buttons button{width:100%;padding:13px;font-size:15px;}
+
+/* -------- HUD -------- */
+#gameScreen{padding:0;}
+#gameWrap{
+  position:relative;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:#0a151c;
+}
+#gameCanvas{
+  background:linear-gradient(180deg,#173447 0%, #0f2632 60%, #0b1e28 100%);
+  display:block;
+  width:100%;height:100%;
+  touch-action:none;
+}
+#hud{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:10px 14px;pointer-events:none;
+  font-family:var(--font-display);
+}
+.hud-left,.hud-right{display:flex;flex-direction:column;gap:6px;}
+.hud-chip{
+  background:rgba(10,20,26,.65);backdrop-filter:blur(3px);
+  border:1px solid rgba(123,255,176,.25);
+  border-radius:8px;padding:5px 10px;font-size:13px;
+  display:flex;align-items:center;gap:6px;color:var(--chalk);
+  min-width:86px;
+}
+.hud-chip b{color:var(--coin);}
+#pauseBtn,#muteBtn{
+  pointer-events:auto;
+  background:rgba(10,20,26,.7);border:1px solid rgba(255,181,71,.4);
+  color:var(--hazard);width:38px;height:38px;border-radius:10px;font-size:17px;
+}
+#muteBtn{border-color:rgba(123,255,176,.4);color:var(--glow-green);margin-right:6px;}
+.hud-mid{display:flex;pointer-events:auto;}
+#hearts{display:flex;gap:3px;font-size:16px;}
+#touchControls{
+  position:absolute;bottom:16px;left:0;right:0;
+  display:flex;justify-content:space-between;padding:0 16px;
+  pointer-events:none;
+}
+.touch-btn{
+  pointer-events:auto;
+  width:64px;height:64px;border-radius:50%;
+  background:rgba(18,50,65,.75);border:2px solid rgba(123,255,176,.4);
+  color:var(--chalk);font-size:22px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+.touch-btn:active{background:rgba(123,255,176,.3);}
+.touch-mid{display:flex;gap:14px;}
+
+/* -------- overlays -------- */
+.overlay{
+  position:absolute;inset:0;background:rgba(6,14,18,.72);
+  display:none;align-items:center;justify-content:center;z-index:20;
+  backdrop-filter:blur(2px);
+}
+.overlay.active{display:flex;}
+.overlay-panel{
+  background:linear-gradient(180deg, var(--lab-panel), #0e2a36);
+  border:1px solid rgba(123,255,176,.3);border-radius:16px;
+  padding:24px;width:min(380px,90vw);max-height:86vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  text-align:center;
+}
+.overlay-panel h2{margin:0 0 4px;font-family:var(--font-display);letter-spacing:1px;}
+.q-diff{
+  display:inline-block;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 10px;border-radius:12px;margin-bottom:10px;
+}
+.diff-easy{background:rgba(123,255,176,.15);color:var(--glow-green);}
+.diff-medium{background:rgba(255,181,71,.15);color:var(--hazard);}
+.diff-hard{background:rgba(255,93,93,.15);color:var(--danger);}
+#qText{font-size:16px;line-height:1.5;margin:8px 0 16px;text-align:left;}
+.q-option{
+  display:block;width:100%;text-align:left;padding:12px 14px;margin:8px 0;
+  background:rgba(255,255,255,.05);border:1px solid rgba(234,246,242,.15);
+  border-radius:9px;color:var(--chalk);font-size:14px;font-family:var(--font-body);font-weight:500;
+}
+.q-option:hover{background:rgba(123,255,176,.1);border-color:var(--glow-green);}
+.q-option.correct{background:rgba(123,255,176,.25);border-color:var(--glow-green);}
+.q-option.wrong{background:rgba(255,93,93,.22);border-color:var(--danger);}
+#qHintBtn{margin-top:6px;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.4);color:var(--hazard);padding:8px 14px;font-size:13px;}
+#qHintText{font-size:12px;color:var(--hazard);margin-top:8px;text-align:left;min-height:14px;}
+#qFeedback{display:none;text-align:left;}
+#qFeedbackTitle{font-size:18px;font-weight:800;font-family:var(--font-display);margin-bottom:6px;}
+#qExplain{font-size:13px;color:var(--chalk-dim);line-height:1.5;margin-bottom:14px;}
+
+.go-title{font-family:var(--font-display);font-size:26px;color:var(--danger);text-shadow:0 0 16px rgba(255,93,93,.6);letter-spacing:1px;}
+.countdown-text{
+  font-family:var(--font-display);font-weight:900;
+  font-size:clamp(72px,22vw,140px);
+  color:var(--glow-green);
+  text-shadow:0 0 30px rgba(123,255,176,.7), 0 0 8px rgba(123,255,176,.9);
+  animation:countPulse .5s ease;
+}
+@keyframes countPulse{from{transform:scale(1.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.go-sub{color:var(--chalk-dim);font-size:13px;margin-top:-6px;margin-bottom:10px;}
+.go-newbest{color:var(--coin);font-weight:800;font-family:var(--font-display);margin:6px 0;text-shadow:0 0 10px rgba(255,215,107,.6);}
+.go-stats{display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.04);border-radius:10px;padding:12px;margin:12px 0;font-size:14px;}
+.go-stats div{display:flex;justify-content:space-between;}
+.go-stats b{color:var(--glow-green);}
+
+/* -------- shop / profile -------- */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin:14px 0;max-height:46vh;overflow-y:auto;}
+.shop-item{
+  background:rgba(255,255,255,.05);border:1px solid rgba(123,255,176,.2);border-radius:10px;
+  padding:10px;text-align:center;font-size:12px;
+}
+.shop-swatch{width:38px;height:38px;border-radius:50%;margin:0 auto 6px;border:2px solid rgba(255,255,255,.3);}
+.shop-item .price{color:var(--coin);font-weight:700;margin:4px 0;}
+.shop-desc{font-size:10.5px;color:var(--chalk-dim);line-height:1.35;margin:2px 0 4px;min-height:26px;}
+.shop-preview-gradient{width:100%;height:36px;border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,255,255,.15);}
+.shop-item button{width:100%;padding:6px;font-size:11px;background:var(--glow-green-dim);color:#062a1c;}
+.shop-item button.owned{background:rgba(255,255,255,.15);color:var(--chalk-dim);}
+.shop-item button.equipped{background:var(--hazard);color:#3a2100;}
+
+.profile-grid{width:100%;display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.profile-row{display:flex;justify-content:space-between;background:rgba(255,255,255,.04);border-radius:8px;padding:10px 14px;font-size:14px;}
+.profile-row b{color:var(--glow-green);}
+
+.htp-list{text-align:left;font-size:13px;line-height:1.9;color:var(--chalk-dim);width:100%;}
+.htp-list li{margin-bottom:2px;}
+
+.tabs{display:flex;gap:6px;width:100%;margin-bottom:6px;}
+.tab-btn{flex:1;padding:8px;font-size:12px;background:rgba(255,255,255,.05);color:var(--chalk-dim);border:1px solid rgba(123,255,176,.15);}
+.tab-btn.active{background:rgba(123,255,176,.15);color:var(--glow-green);border-color:var(--glow-green);}
+
+.close-x{position:absolute;top:10px;right:12px;background:transparent;color:var(--chalk-dim);font-size:20px;padding:2px 8px;}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-thumb{background:rgba(123,255,176,.3);border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ LOGIN ============ -->
+  <div class="screen active" id="loginScreen">
+    <div class="labgrid"></div>
+    <div class="brand"><span class="beaker">🧪</span>SCIENCE RUN</div>
+    <div class="tagline">escape the lab. answer to survive.</div>
+    <div class="panel">
+      <label>Username</label>
+      <input type="text" id="loginUser" maxlength="16" autocomplete="off">
+      <label>Password</label>
+      <input type="password" id="loginPass" maxlength="24">
+      <div class="error-msg" id="loginError"></div>
+      <button class="btn-primary" id="loginBtn">▶ LOGIN</button>
+      <div class="link-row">
+        <button class="btn-secondary" id="goRegisterBtn">REGISTER</button>
+        <button class="btn-secondary" id="goHowToBtnLogin">HOW TO PLAY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REGISTER ============ -->
+  <div class="screen" id="registerScreen">
+    <div class="labgrid"></div>
+    <div class="brand" style="font-size:28px;"><span class="beaker">🧬</span>NEW RESEARCHER</div>
+    <div class="panel">
+      <label>Username</label>
+      <input type="text" id="regUser" maxlength="16" autocomplete="off">
+      <label>Password</label>
+      <input type="password" id="regPass" maxlength="24">
+      <label>Confirm Password</label>
+      <input type="password" id="regPass2" maxlength="24">
+      <div class="error-msg" id="regError"></div>
+      <button class="btn-primary" id="regBtn">✓ CREATE ACCOUNT</button>
+      <button class="btn-secondary" id="backToLoginBtn">← BACK TO LOGIN</button>
+    </div>
+  </div>
+
+  <!-- ============ MAIN MENU ============ -->
+  <div class="screen" id="menuScreen">
+    <div class="labgrid"></div>
+    <div class="brand" style="font-size:32px;"><span class="beaker">🧪</span>SCIENCE RUN</div>
+    <div class="panel menu-card">
+      <div class="player-tag">👤 <b id="menuUsername">-</b></div>
+      <div class="stat-row">
+        <div class="stat-chip">🏆 <span id="menuBest">0</span></div>
+        <div class="stat-chip">🪙 <span id="menuCoins">0</span></div>
+      </div>
+      <div class="menu-buttons">
+        <button class="btn-primary" id="playBtn">▶ PLAY</button>
+        <button class="btn-secondary" id="shopBtn">🛒 SHOP</button>
+        <button class="btn-secondary" id="profileBtn">📋 PROFILE</button>
+        <button class="btn-secondary" id="howToBtn">❓ HOW TO PLAY</button>
+        <button class="btn-secondary" id="menuMuteBtn">🔊 SOUND: ON</button>
+        <button class="btn-secondary" id="logoutBtn" style="color:var(--danger);">⎋ LOGOUT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HOW TO PLAY ============ -->
+  <div class="screen" id="howtoScreen">
+    <div class="labgrid"></div>
+    <div class="panel" style="width:min(400px,90vw);">
+      <h2 style="margin-top:0;font-family:var(--font-display);text-align:center;">🔬 HOW TO PLAY</h2>
+      <ul class="htp-list">
+        <li>🏃 ตัวละครวิ่งอัตโนมัติตลอดเวลา ไม่ต้องกดวิ่ง</li>
+        <li>⬆️ กด Jump (Arrow Up / W / ปุ่ม) เพื่อกระโดดข้ามสิ่งกีดขวาง</li>
+        <li>⬇️ กด Down (Arrow Down / S / ปุ่ม) เพื่อก้มหลบ</li>
+        <li>🪙 เก็บเหรียญเพื่อสะสม Coins และเพิ่ม Score</li>
+        <li>❔ เหรียญบางเหรียญคือ Question Coin หน้าตาเหมือนเหรียญปกติ จะรู้ก็ต่อเมื่อเก็บแล้ว</li>
+        <li>🧠 เก็บ Question Coin ต้องตอบคำถามวิทยาศาสตร์ ม.5</li>
+        <li>💔 ตอบผิดหรือชนสิ่งกีดขวาง จะเสียหัวใจ 1 ดวง</li>
+        <li>💡 ใช้ Hint ได้ถ้าตอบไม่ออก (มีจำกัด)</li>
+        <li>⏱️ ไม่มี Timer เล่นได้เรื่อย ๆ</li>
+        <li>💀 หัวใจหมด = สิ่งมีชีวิตทดลองจับตัวคุณ = Game Over</li>
+        <li>🎯 เป้าหมายคือทำ Best Score ให้สูงที่สุด!</li>
+      </ul>
+      <button class="btn-primary" id="closeHowToBtn">เข้าใจแล้ว</button>
+    </div>
+  </div>
+
+  <!-- ============ SHOP ============ -->
+  <div class="screen" id="shopScreen">
+    <div class="labgrid"></div>
+    <div class="panel" style="width:min(420px,92vw);">
+      <h2 style="margin-top:0;font-family:var(--font-display);text-align:center;">🛒 SHOP <span style="color:var(--coin);font-size:14px;">🪙 <span id="shopCoins">0</span></span></h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="color">สีตัวละคร</button>
+        <button class="tab-btn" data-tab="trail">Trail</button>
+        <button class="tab-btn" data-tab="theme">ธีมแล็บ</button>
+        <button class="tab-btn" data-tab="jetpack">🚀 ไอพ่น</button>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+      <button class="btn-secondary" id="closeShopBtn">← MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="screen" id="profileScreen">
+    <div class="labgrid"></div>
+    <div class="panel" style="width:min(360px,90vw);">
+      <h2 style="margin-top:0;font-family:var(--font-display);text-align:center;">📋 PROFILE</h2>
+      <div class="profile-grid">
+        <div class="profile-row"><span>Username</span><b id="pUser">-</b></div>
+        <div class="profile-row"><span>Best Score</span><b id="pBest">0</b></div>
+        <div class="profile-row"><span>Coins</span><b id="pCoins">0</b></div>
+        <div class="profile-row"><span>Games Played</span><b id="pGames">0</b></div>
+        <div class="profile-row"><span>Correct Answers</span><b id="pCorrect">0</b></div>
+        <div class="profile-row"><span>Incorrect Answers</span><b id="pIncorrect">0</b></div>
+        <div class="profile-row"><span>Accuracy</span><b id="pAccuracy">0%</b></div>
+      </div>
+      <button class="btn-secondary" id="closeProfileBtn">← MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- ============ GAME ============ -->
+  <div class="screen" id="gameScreen">
+    <div id="gameWrap">
+      <canvas id="gameCanvas"></canvas>
+      <div id="hud">
+        <div class="hud-left">
+          <div class="hud-chip">⭐ <b id="hudScore">0</b></div>
+          <div class="hud-chip">🪙 <b id="hudCoins">0</b></div>
+          <div class="hud-chip" id="jetpackHud" style="display:none;border-color:rgba(92,200,255,.5);">🚀 <b id="hudJetpack">0</b>s</div>
+        </div>
+        <div class="hud-mid">
+          <button id="muteBtn">🔊</button>
+          <button id="pauseBtn">⏸</button>
+        </div>
+        <div class="hud-right">
+          <div class="hud-chip" id="hearts"></div>
+          <div class="hud-chip">💡 <b id="hudHint">3</b></div>
+        </div>
+      </div>
+      <div id="touchControls">
+        <button class="touch-btn" id="btnDown">⬇</button>
+        <div class="touch-mid"></div>
+        <button class="touch-btn" id="btnJump">⬆</button>
+      </div>
+    </div>
+
+    <!-- Pause overlay -->
+    <div class="overlay" id="pauseOverlay">
+      <div class="overlay-panel">
+        <h2>⏸ PAUSED</h2>
+        <button class="btn-primary" id="resumeBtn">▶ RESUME</button>
+        <button class="btn-secondary" id="pauseHowToBtn">❓ HOW TO PLAY</button>
+        <button class="btn-secondary" id="pauseMenuBtn">🏠 MAIN MENU</button>
+      </div>
+    </div>
+
+    <!-- Question overlay -->
+    <div class="overlay" id="questionOverlay">
+      <div class="overlay-panel">
+        <span id="qDiffBadge" class="q-diff diff-easy">EASY</span>
+        <div id="qText">Question text</div>
+        <div id="qOptions"></div>
+        <button id="qHintBtn">💡 HINT (<span id="qHintCount">3</span>)</button>
+        <div id="qHintText"></div>
+        <div id="qFeedback">
+          <div id="qFeedbackTitle"></div>
+          <div id="qExplain"></div>
+          <button class="btn-primary" id="qContinueBtn">CONTINUE ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown overlay (shown right before resuming after a question) -->
+    <div class="overlay" id="countdownOverlay">
+      <div id="countdownText" class="countdown-text">3</div>
+    </div>
+
+    <!-- Game Over overlay -->
+    <div class="overlay" id="gameOverOverlay">
+      <div class="overlay-panel">
+        <div class="go-title">GAME OVER</div>
+        <div class="go-sub">The creature caught you!</div>
+        <div class="go-newbest" id="newBestTag" style="display:none;">🏆 NEW BEST SCORE!</div>
+        <div class="go-stats">
+          <div><span>Score</span><b id="goScore">0</b></div>
+          <div><span>Best Score</span><b id="goBest">0</b></div>
+          <div><span>Coins</span><b id="goCoins">0</b></div>
+          <div><span>Correct Answers</span><b id="goCorrect">0</b></div>
+        </div>
+        <button class="btn-primary" id="playAgainBtn">🔁 PLAY AGAIN</button>
+        <button class="btn-secondary" id="goShopBtn">🛒 SHOP</button>
+        <button class="btn-secondary" id="goMenuBtn">🏠 MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   SCIENCE RUN — single file build (HTML+CSS+JS combined)
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   0. STORAGE / ACCOUNT LAYER  (localStorage as DB)
+--------------------------------------------------------- */
+const DB_KEY = 'scienceRunUsers';
+const SESSION_KEY = 'scienceRunSession';
+
+function loadDB(){
+  try{ return JSON.parse(localStorage.getItem(DB_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function defaultUserData(password){
+  return {
+    password,
+    bestScore:0,
+    coins:0,
+    gamesPlayed:0,
+    correct:0,
+    incorrect:0,
+    hints:3,
+    ownedItems:['color_default','trail_none','theme_default','jetpack_base'],
+    equipped:{color:'color_default', trail:'trail_none', theme:'theme_default', jetpack:'jetpack_base'}
+  };
+}
+
+/* fills in fields that older saved profiles (from before the jetpack-upgrade
+   shop tab existed) might be missing, so old accounts keep working */
+function migrateProfile(p){
+  if(!p.equipped) p.equipped = {};
+  if(!p.equipped.color) p.equipped.color = 'color_default';
+  if(!p.equipped.trail) p.equipped.trail = 'trail_none';
+  if(!p.equipped.theme) p.equipped.theme = 'theme_default';
+  if(!p.equipped.jetpack) p.equipped.jetpack = 'jetpack_base';
+  if(!Array.isArray(p.ownedItems)) p.ownedItems = [];
+  ['color_default','trail_none','theme_default','jetpack_base'].forEach(id=>{
+    if(!p.ownedItems.includes(id)) p.ownedItems.push(id);
+  });
+  if(typeof p.hints !== 'number') p.hints = 3;
+  return p;
+}
+
+let currentUser = null;   // username string
+let profile = null;       // reference to user data object
+
+function registerUser(username, password){
+  const db = loadDB();
+  if(db[username]) return {ok:false, msg:'Username นี้มีผู้ใช้แล้ว'};
+  db[username] = defaultUserData(password);
+  saveDB(db);
+  return {ok:true};
+}
+function loginUser(username, password){
+  const db = loadDB();
+  const u = db[username];
+  if(!u) return {ok:false, msg:'ไม่พบผู้ใช้นี้'};
+  if(u.password !== password) return {ok:false, msg:'รหัสผ่านไม่ถูกต้อง'};
+  return {ok:true};
+}
+function persistProfile(){
+  const db = loadDB();
+  db[currentUser] = profile;
+  saveDB(db);
+}
+
+/* ---------------------------------------------------------
+   1. SCREEN NAVIGATION
+--------------------------------------------------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+let cameFromPause = false; // for how-to-play back navigation
+
+/* ---------------------------------------------------------
+   2. LOGIN / REGISTER LOGIC
+--------------------------------------------------------- */
+document.getElementById('goRegisterBtn').onclick = ()=>{ clearRegForm(); showScreen('registerScreen'); };
+document.getElementById('backToLoginBtn').onclick = ()=> showScreen('loginScreen');
+document.getElementById('goHowToBtnLogin').onclick = ()=>{ cameFromPause=false; showScreen('howtoScreen'); };
+document.getElementById('closeHowToBtn').onclick = ()=>{
+  if(cameFromPause){ showScreen('gameScreen'); openPause(); } else { showScreen(currentUser?'menuScreen':'loginScreen'); }
+};
+
+function clearRegForm(){
+  document.getElementById('regUser').value='';
+  document.getElementById('regPass').value='';
+  document.getElementById('regPass2').value='';
+  document.getElementById('regError').textContent='';
+}
+
+document.getElementById('loginBtn').onclick = ()=>{
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if(!u || !p){ err.textContent='กรุณากรอก Username และ Password'; return; }
+  const res = loginUser(u,p);
+  if(!res.ok){ err.textContent = res.msg; return; }
+  err.textContent='';
+  currentUser = u;
+  const db = loadDB();
+  profile = migrateProfile(db[u]);
+  localStorage.setItem(SESSION_KEY, u);
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  enterMenu();
+};
+
+document.getElementById('regBtn').onclick = ()=>{
+  const u = document.getElementById('regUser').value.trim();
+  const p = document.getElementById('regPass').value;
+  const p2 = document.getElementById('regPass2').value;
+  const err = document.getElementById('regError');
+  if(!u || !p){ err.textContent='กรุณากรอกข้อมูลให้ครบ'; return; }
+  if(u.length<3){ err.textContent='Username ต้องมีอย่างน้อย 3 ตัวอักษร'; return; }
+  if(p.length<4){ err.textContent='Password ต้องมีอย่างน้อย 4 ตัวอักษร'; return; }
+  if(p!==p2){ err.textContent='รหัสผ่านไม่ตรงกัน'; return; }
+  const res = registerUser(u,p);
+  if(!res.ok){ err.textContent = res.msg; return; }
+  err.textContent='';
+  // auto-login
+  currentUser = u;
+  profile = migrateProfile(loadDB()[u]);
+  localStorage.setItem(SESSION_KEY, u);
+  enterMenu();
+};
+
+function enterMenu(){
+  refreshMenuUI();
+  showScreen('menuScreen');
+}
+
+/* auto-login from saved session */
+(function tryAutoLogin(){
+  const saved = localStorage.getItem(SESSION_KEY);
+  if(saved){
+    const db = loadDB();
+    if(db[saved]){
+      currentUser = saved;
+      profile = migrateProfile(db[saved]);
+      enterMenu();
+    }
+  }
+})();
+
+/* ---------------------------------------------------------
+   3. MAIN MENU
+--------------------------------------------------------- */
+function refreshMenuUI(){
+  document.getElementById('menuUsername').textContent = currentUser;
+  document.getElementById('menuBest').textContent = profile.bestScore;
+  document.getElementById('menuCoins').textContent = profile.coins;
+}
+document.getElementById('playBtn').onclick = ()=> startGame();
+document.getElementById('shopBtn').onclick = ()=>{ renderShop(); showScreen('shopScreen'); };
+document.getElementById('profileBtn').onclick = ()=>{ renderProfile(); showScreen('profileScreen'); };
+document.getElementById('howToBtn').onclick = ()=>{ cameFromPause=false; showScreen('howtoScreen'); };
+document.getElementById('logoutBtn').onclick = ()=>{
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null; profile = null;
+  showScreen('loginScreen');
+};
+
+/* ---------------------------------------------------------
+   4. PROFILE
+--------------------------------------------------------- */
+function renderProfile(){
+  document.getElementById('pUser').textContent = currentUser;
+  document.getElementById('pBest').textContent = profile.bestScore;
+  document.getElementById('pCoins').textContent = profile.coins;
+  document.getElementById('pGames').textContent = profile.gamesPlayed;
+  document.getElementById('pCorrect').textContent = profile.correct;
+  document.getElementById('pIncorrect').textContent = profile.incorrect;
+  const total = profile.correct + profile.incorrect;
+  const acc = total>0 ? Math.round((profile.correct/total)*100) : 0;
+  document.getElementById('pAccuracy').textContent = acc + '%';
+}
+document.getElementById('closeProfileBtn').onclick = ()=> showScreen('menuScreen');
+
+/* ---------------------------------------------------------
+   5. SHOP
+--------------------------------------------------------- */
+const SHOP_ITEMS = {
+  color: [
+    {id:'color_default', name:'Lab Green', price:0, swatch:'#7bffb0', desc:'สีตัวละครเริ่มต้น เขียวสะท้อนแสง'},
+    {id:'color_orange',  name:'Hazard Orange', price:50, swatch:'#ffb547', desc:'ส้มเตือนภัย เห็นชัดสุดในโหมดมืด'},
+    {id:'color_blue',    name:'Chem Blue', price:80, swatch:'#5cc8ff', desc:'ฟ้าสารเคมี เย็นตาสไตล์แล็บ'},
+    {id:'color_pink',    name:'Reagent Pink', price:120, swatch:'#ff6fae', desc:'ชมพูรีเอเจนต์ โดดเด่นสุดในกลุ่ม'},
+  ],
+  trail: [
+    {id:'trail_none', name:'No Trail', price:0, icon:'—', swatch:'#3a4b52', desc:'วิ่งเปล่า ๆ ไม่มีเอฟเฟกต์ตามหลัง'},
+    {id:'trail_spark',name:'Spark Trail', price:70, icon:'✨', swatch:'#ffd76b', desc:'ประกายไฟสีทองกระเด็นตามหลังตัวละครทุกก้าว'},
+    {id:'trail_smoke',name:'Chem Smoke', price:100, icon:'💨', swatch:'#b4dcd2', desc:'ควันสารเคมีสีฟ้าอมเขียวลอยจาง ๆ ตามหลัง'},
+  ],
+  theme: [
+    {id:'theme_default', name:'Classic Lab', price:0, gradient:'linear-gradient(180deg,#1c3f52,#0a1e28)', desc:'ห้องแล็บโทนฟ้าเขียวมาตรฐาน สว่างชัดเจน'},
+    {id:'theme_night',   name:'Night Lab', price:90, gradient:'linear-gradient(180deg,#0b1220,#050a12)', desc:'แล็บกลางคืนโทนน้ำเงินเข้ม บรรยากาศเงียบขรึม'},
+    {id:'theme_neon',    name:'Neon Lab', price:150, gradient:'linear-gradient(180deg,#2a0a3a,#0d0518)', desc:'แล็บนีออนโทนม่วงชมพูจัดจ้าน สายมันส์'},
+  ],
+  jetpack: [
+    {id:'jetpack_base', name:'Base Boost', price:0, icon:'🚀', swatch:'#5cc8ff', desc:'ไอพ่นบินหนีสิ่งกีดขวางได้ 10 วินาที (ค่าเริ่มต้น)', duration:10},
+    {id:'jetpack_ext',  name:'Extended Boost', price:120, icon:'🚀', swatch:'#4fa8e0', desc:'อัพเกรดไอพ่น บินได้นานขึ้นเป็น 14 วินาที', duration:14},
+    {id:'jetpack_turbo',name:'Turbo Boost', price:220, icon:'🚀', swatch:'#7d6fe0', desc:'อัพเกรดไอพ่น บินได้นานขึ้นเป็น 18 วินาที', duration:18},
+    {id:'jetpack_mega', name:'Mega Boost', price:380, icon:'🚀', swatch:'#c95fe0', desc:'อัพเกรดไอพ่นขั้นสุด บินได้นานถึง 24 วินาที', duration:24},
+  ],
+};
+function getJetpackDuration(){
+  const id = (profile.equipped && profile.equipped.jetpack) || 'jetpack_base';
+  const item = SHOP_ITEMS.jetpack.find(i=>i.id===id);
+  return item ? item.duration : 10;
+}
+let shopTab = 'color';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    shopTab = btn.dataset.tab;
+    renderShop();
+  };
+});
+function renderShop(){
+  document.getElementById('shopCoins').textContent = profile.coins;
+  const grid = document.getElementById('shopGrid');
+  grid.innerHTML = '';
+  SHOP_ITEMS[shopTab].forEach(item=>{
+    const owned = profile.ownedItems.includes(item.id);
+    const equipped = profile.equipped[shopTab] === item.id;
+    const div = document.createElement('div');
+    div.className='shop-item';
+    let previewHtml;
+    if(shopTab==='theme'){
+      // theme = a preview swatch of the actual in-game sky gradient
+      previewHtml = `<div class="shop-preview-gradient" style="background:${item.gradient}"></div>`;
+    } else if(item.icon){
+      // trail / jetpack = colored swatch carrying the effect's own icon, so each tier reads distinctly
+      previewHtml = `<div class="shop-swatch" style="background:${item.swatch};display:flex;align-items:center;justify-content:center;font-size:16px;">${item.icon}</div>`;
+    } else {
+      previewHtml = `<div class="shop-swatch" style="background:${item.swatch}"></div>`;
+    }
+    div.innerHTML = `
+      ${previewHtml}
+      <div>${item.name}</div>
+      <div class="shop-desc">${item.desc}</div>
+      <div class="price">${item.price===0?'FREE':'🪙 '+item.price}</div>
+      <button data-id="${item.id}" class="${equipped?'equipped':(owned?'owned':'')}">
+        ${equipped?'EQUIPPED':(owned?'EQUIP':'BUY')}
+      </button>`;
+    grid.appendChild(div);
+    const b = div.querySelector('button');
+    b.onclick = ()=>{
+      if(equipped) return;
+      if(owned){
+        profile.equipped[shopTab] = item.id;
+        persistProfile();
+        renderShop();
+        return;
+      }
+      if(profile.coins < item.price) return;
+      profile.coins -= item.price;
+      profile.ownedItems.push(item.id);
+      profile.equipped[shopTab] = item.id;
+      persistProfile();
+      renderShop();
+      refreshMenuUI();
+    };
+  });
+}
+document.getElementById('closeShopBtn').onclick = ()=>{ refreshMenuUI(); showScreen('menuScreen'); };
+document.getElementById('goShopBtn').onclick = ()=>{ closeOverlay('gameOverOverlay'); renderShop(); showScreen('shopScreen'); };
+
+/* ---------------------------------------------------------
+   6. QUESTION BANK  (ม.5 science — physics / chem / bio mix)
+--------------------------------------------------------- */
+const QUESTION_BANK = [
+  {d:'easy',q:'ออร์แกเนลล์ใดในเซลล์พืชทำหน้าที่สังเคราะห์แสง?',o:['ไมโทคอนเดรีย','คลอโรพลาสต์','นิวเคลียส','ไรโบโซม'],a:1,h:'มันมีสีเขียวและดักจับแสงอาทิตย์',e:'คลอโรพลาสต์มีคลอโรฟิลล์ที่ใช้ดักจับพลังงานแสงเพื่อสังเคราะห์แสง'},
+  {d:'easy',q:'หน่วยของแรงในระบบ SI คืออะไร?',o:['จูล','นิวตัน','วัตต์','ปาสคาล'],a:1,h:'ตั้งชื่อตามนักวิทยาศาสตร์ผู้คิดกฎการเคลื่อนที่',e:'แรงมีหน่วยเป็นนิวตัน (N) ตามชื่อไอแซก นิวตัน'},
+  {d:'easy',q:'ธาตุใดมีเลขอะตอมเท่ากับ 1?',o:['ฮีเลียม','ไฮโดรเจน','ลิเทียม','คาร์บอน'],a:1,h:'เป็นธาตุที่เบาที่สุดในตารางธาตุ',e:'ไฮโดรเจนมีโปรตอน 1 ตัว จึงมีเลขอะตอม 1'},
+  {d:'easy',q:'สถานะของสสารข้อใดที่อนุภาคอยู่ชิดกันและมีรูปร่างคงที่?',o:['ของแข็ง','ของเหลว','แก๊ส','พลาสมา'],a:0,h:'อนุภาคสั่นอยู่กับที่ ไม่เคลื่อนที่ไปมา',e:'ของแข็งมีอนุภาคเรียงชิดกันเป็นระเบียบ ทำให้มีรูปร่างและปริมาตรคงที่'},
+  {d:'easy',q:'กระบวนการใดที่พืชคายน้ำออกทางปากใบ?',o:['การหายใจ','การคายน้ำ','การสังเคราะห์แสง','การดูดซึม'],a:1,h:'เกี่ยวข้องกับไอน้ำที่ระเหยออกจากใบ',e:'การคายน้ำ (Transpiration) คือการที่น้ำระเหยออกจากพืชทางปากใบ'},
+  {d:'medium',q:'กฎข้อที่ 1 ของนิวตันกล่าวถึงเรื่องใด?',o:['ความเฉื่อย','แรงกิริยา-ปฏิกิริยา','ความเร่ง','พลังงานจลน์'],a:0,h:'วัตถุจะรักษาสภาพการเคลื่อนที่เดิมถ้าไม่มีแรงมากระทำ',e:'กฎข้อที่ 1 หรือกฎความเฉื่อย ระบุว่าวัตถุจะคงสภาพนิ่งหรือเคลื่อนที่คงที่จนกว่าจะมีแรงลัพธ์มากระทำ'},
+  {d:'medium',q:'พันธะเคมีชนิดใดเกิดจากการใช้อิเล็กตรอนร่วมกัน?',o:['พันธะไอออนิก','พันธะโคเวเลนต์','พันธะโลหะ','พันธะไฮโดรเจน'],a:1,h:'มักเกิดระหว่างอโลหะกับอโลหะ',e:'พันธะโคเวเลนต์เกิดจากอะตอมใช้อิเล็กตรอนคู่ร่วมกัน พบมากในสารประกอบอโลหะ'},
+  {d:'medium',q:'DNA มีรูปร่างลักษณะใด?',o:['สายเดี่ยวตรง','เกลียวคู่','วงแหวน','แผ่นราบ'],a:1,h:'ค้นพบโดยวัตสันและคริก มีลักษณะบิดเป็นเกลียว',e:'DNA มีโครงสร้างเป็นเกลียวคู่ (Double Helix) ประกอบด้วยสายพอลินิวคลีโอไทด์สองสาย'},
+  {d:'medium',q:'หน่วยที่ใช้วัดพลังงานในระบบ SI คือข้อใด?',o:['นิวตัน','จูล','วัตต์','แอมแปร์'],a:1,h:'เป็นหน่วยเดียวกับที่ใช้บอกแคลอรีในอาหาร (แปลงหน่วยได้)',e:'พลังงานมีหน่วยเป็นจูล (J) ส่วนวัตต์คือหน่วยของกำลัง'},
+  {d:'medium',q:'ระบบนิเวศข้อใดจัดเป็น "ผู้บริโภคลำดับที่ 1"?',o:['พืชสีเขียว','สัตว์กินพืช','สัตว์กินเนื้อ','ผู้ย่อยสลาย'],a:1,h:'กินผู้ผลิตโดยตรง',e:'สัตว์กินพืช (Herbivore) กินผู้ผลิตโดยตรง จึงเป็นผู้บริโภคลำดับที่ 1'},
+  {d:'medium',q:'กระแสไฟฟ้ามีหน่วยเป็นอะไร?',o:['โวลต์','โอห์ม','แอมแปร์','วัตต์'],a:2,h:'ใช้ตัวย่อ A',e:'กระแสไฟฟ้าวัดเป็นแอมแปร์ (A) ส่วนโวลต์คือหน่วยความต่างศักย์'},
+  {d:'hard',q:'ปฏิกิริยาเคมีในข้อใดเป็นปฏิกิริยาดูดความร้อน (Endothermic)?',o:['การเผาไหม้เชื้อเพลิง','การละลายแอมโมเนียมไนเตรตในน้ำ','การจุดพลุ','การหายใจระดับเซลล์'],a:1,h:'ปฏิกิริยานี้ทำให้ภาชนะรู้สึกเย็นลง',e:'การละลายแอมโมเนียมไนเตรตดูดพลังงานความร้อนจากสิ่งแวดล้อม ทำให้อุณหภูมิลดลง'},
+  {d:'hard',q:'ในการแบ่งเซลล์แบบไมโอซิส (Meiosis) ได้เซลล์ลูกกี่เซลล์ และมีโครโมโซมอย่างไร?',o:['2 เซลล์ โครโมโซมเท่าเซลล์แม่','4 เซลล์ โครโมโซมครึ่งหนึ่งของเซลล์แม่','4 เซลล์ โครโมโซมเท่าเซลล์แม่','2 เซลล์ โครโมโซมครึ่งหนึ่งของเซลล์แม่'],a:1,h:'เกี่ยวข้องกับการสร้างเซลล์สืบพันธุ์ ลดจำนวนโครโมโซมลงครึ่งหนึ่ง',e:'ไมโอซิสให้เซลล์ลูก 4 เซลล์ที่มีโครโมโซมเป็นครึ่งหนึ่งของเซลล์แม่ (n) ใช้สร้างเซลล์สืบพันธุ์'},
+  {d:'hard',q:'ค่า pH ของสารละลายที่มีค่าเท่ากับ 3 จัดเป็นสารประเภทใด?',o:['เบสแก่','กรดแก่','กลาง','เบสอ่อน'],a:1,h:'ค่าต่ำกว่า 7 แสดงความเป็นกรด ยิ่งต่ำยิ่งกรดแก่',e:'ค่า pH ต่ำกว่า 7 คือกรด และค่ายิ่งต่ำ (เช่น 3) ยิ่งเป็นกรดแก่'},
+  {d:'hard',q:'ตามกฎการอนุรักษ์พลังงาน พลังงานกลรวมของวัตถุที่ตกอย่างอิสระ (ไม่มีแรงต้าน) จะเป็นอย่างไร?',o:['เพิ่มขึ้นเรื่อย ๆ','ลดลงเรื่อย ๆ','คงที่เสมอ','เป็นศูนย์ตลอดเวลา'],a:2,h:'พลังงานศักย์เปลี่ยนเป็นพลังงานจลน์ แต่ผลรวมไม่เปลี่ยน',e:'เมื่อไม่มีแรงต้านอากาศ พลังงานกล (ศักย์+จลน์) จะคงที่ตามกฎการอนุรักษ์พลังงาน'},
+  {d:'hard',q:'คลื่นแม่เหล็กไฟฟ้าชนิดใดมีความยาวคลื่นสั้นที่สุด?',o:['คลื่นวิทยุ','แสงที่ตามองเห็น','รังสีอินฟราเรด','รังสีแกมมา'],a:3,h:'เป็นคลื่นที่มีพลังงานสูงที่สุดในสเปกตรัม',e:'รังสีแกมมามีความยาวคลื่นสั้นที่สุดและพลังงานสูงที่สุดในสเปกตรัมคลื่นแม่เหล็กไฟฟ้า'},
+  {d:'easy',q:'อวัยวะใดทำหน้าที่สูบฉีดเลือดไปเลี้ยงร่างกาย?',o:['ปอด','หัวใจ','ตับ','ไต'],a:1,h:'อยู่ตรงกลางอกและเต้นตลอดเวลา',e:'หัวใจทำหน้าที่สูบฉีดเลือดไปเลี้ยงส่วนต่าง ๆ ของร่างกาย'},
+  {d:'easy',q:'แรงโน้มถ่วงของโลกทำให้วัตถุเคลื่อนที่ไปในทิศทางใด?',o:['ขึ้นด้านบน','เข้าหาศูนย์กลางโลก','ไปทางขวา','ไม่มีทิศทาง'],a:1,h:'เป็นแรงที่ทำให้ของตกลงพื้น',e:'แรงโน้มถ่วงดึงวัตถุเข้าหาศูนย์กลางของโลกเสมอ'},
+  {d:'medium',q:'สารประกอบไอออนิกเกิดจากพันธะระหว่างธาตุประเภทใด?',o:['โลหะกับโลหะ','อโลหะกับอโลหะ','โลหะกับอโลหะ','แก๊สเฉื่อยกับแก๊สเฉื่อย'],a:2,h:'เกิดจากการให้และรับอิเล็กตรอนระหว่างสองประเภทธาตุที่ต่างกัน',e:'พันธะไอออนิกเกิดจากโลหะเสียอิเล็กตรอนให้อโลหะ เกิดเป็นไอออนบวกและลบดึงดูดกัน'},
+  {d:'hard',q:'ในการสังเคราะห์แสง ปฏิกิริยาแสง (Light Reaction) เกิดขึ้นที่บริเวณใดของคลอโรพลาสต์?',o:['สโตรมา','เยื่อไทลาคอยด์','เมทริกซ์','ผนังเซลล์'],a:1,h:'บริเวณนี้มีเม็ดสีคลอโรฟิลล์ฝังอยู่',e:'ปฏิกิริยาแสงเกิดที่เยื่อไทลาคอยด์ ซึ่งมีคลอโรฟิลล์ดักจับพลังงานแสง'},
+  {d:'easy',q:'หน่วยของอุณหภูมิในระบบ SI คือข้อใด?',o:['องศาเซลเซียส','เคลวิน','ฟาเรนไฮต์','จูล'],a:1,h:'เป็นหน่วยที่ไม่มีค่าติดลบ เริ่มจากศูนย์สัมบูรณ์',e:'หน่วย SI ของอุณหภูมิคือเคลวิน (K) ซึ่งเริ่มนับจากศูนย์สัมบูรณ์'},
+  {d:'easy',q:'ระบบย่อยอาหารของมนุษย์เริ่มต้นที่อวัยวะใด?',o:['กระเพาะอาหาร','ปาก','ลำไส้เล็ก','หลอดอาหาร'],a:1,h:'เป็นจุดที่ฟันและน้ำลายเริ่มย่อยอาหาร',e:'การย่อยอาหารเริ่มที่ปาก โดยฟันบดเคี้ยวและน้ำลายช่วยย่อยแป้งเบื้องต้น'},
+  {d:'easy',q:'แสงกับเสียง อย่างใดเดินทางได้เร็วกว่ากัน?',o:['แสงเร็วกว่า','เสียงเร็วกว่า','เร็วเท่ากัน','ขึ้นอยู่กับอุณหภูมิเท่านั้น'],a:0,h:'เวลาฟ้าผ่า เรามักเห็นแสงก่อนได้ยินเสียงฟ้าร้อง',e:'แสงเดินทางเร็วกว่าเสียงมาก แสงมีความเร็วประมาณ 300,000 กม./วินาที ส่วนเสียงในอากาศช้ากว่ามาก'},
+  {d:'easy',q:'อวัยวะใดทำหน้าที่กรองของเสียออกจากเลือด?',o:['ตับ','ไต','ปอด','ม้าม'],a:1,h:'ของเสียที่กรองได้จะถูกขับออกเป็นปัสสาวะ',e:'ไตทำหน้าที่กรองของเสียออกจากเลือดและขับออกในรูปปัสสาวะ'},
+  {d:'easy',q:'น้ำมีสูตรทางเคมีว่าอย่างไร?',o:['CO2','H2O','O2','NaCl'],a:1,h:'ประกอบด้วยไฮโดรเจน 2 อะตอมกับออกซิเจน 1 อะตอม',e:'น้ำมีสูตรเคมี H2O ประกอบด้วยไฮโดรเจน 2 อะตอมและออกซิเจน 1 อะตอม'},
+  {d:'easy',q:'พืชดูดซึมน้ำและแร่ธาตุจากดินผ่านส่วนใด?',o:['ใบ','ลำต้น','ราก','ดอก'],a:2,h:'อยู่ใต้ดิน มีขนรากช่วยเพิ่มพื้นที่ดูดซึม',e:'รากทำหน้าที่ดูดซึมน้ำและแร่ธาตุจากดิน โดยมีขนรากช่วยเพิ่มพื้นที่ผิวในการดูดซึม'},
+  {d:'medium',q:'กฎข้อที่ 2 ของนิวตัน (F = ma) อธิบายความสัมพันธ์ของสิ่งใด?',o:['แรง มวล และความเร่ง','พลังงานกับเวลา','ความดันกับปริมาตร','ประจุกับสนามไฟฟ้า'],a:0,h:'ยิ่งออกแรงมาก วัตถุยิ่งเร่งเร็ว แต่ถ้ามวลมากจะเร่งช้าลง',e:'กฎข้อที่ 2 ของนิวตันระบุว่าแรงลัพธ์เท่ากับมวลคูณความเร่ง (F=ma)'},
+  {d:'medium',q:'กฎข้อที่ 3 ของนิวตันกล่าวถึงเรื่องใด?',o:['ความเฉื่อยของวัตถุ','แรงกิริยาและแรงปฏิกิริยา','การอนุรักษ์พลังงาน','ความเร่งคงที่'],a:1,h:'ทุกแรงที่กระทำจะมีแรงโต้ตอบที่มีขนาดเท่ากันแต่ทิศตรงข้ามเสมอ',e:'กฎข้อที่ 3 ของนิวตันระบุว่าทุกแรงกิริยาจะมีแรงปฏิกิริยาขนาดเท่ากันแต่ทิศตรงข้ามเสมอ'},
+  {d:'medium',q:'หน่วย "โมล (mol)" ใช้วัดปริมาณใดในทางเคมี?',o:['มวลของสาร','ปริมาณสาร','ปริมาตรของสาร','ความหนาแน่นของสาร'],a:1,h:'ใช้นับจำนวนอนุภาค เช่น อะตอมหรือโมเลกุล ในหน่วยใหญ่ ๆ',e:'โมลเป็นหน่วยวัดปริมาณสาร ใช้บอกจำนวนอนุภาค (อะตอม โมเลกุล) ในสารนั้น'},
+  {d:'medium',q:'เลขอะตอมของธาตุบอกถึงจำนวนอนุภาคใด?',o:['นิวตรอน','โปรตอน','อิเล็กตรอนวงนอก','มวลอะตอมรวม'],a:1,h:'เป็นตัวเลขที่ใช้จัดเรียงธาตุในตารางธาตุ',e:'เลขอะตอมคือจำนวนโปรตอนในนิวเคลียสของอะตอม ใช้กำหนดชนิดของธาตุ'},
+  {d:'medium',q:'ห่วงโซ่อาหาร (Food Chain) มักเริ่มต้นจากสิ่งมีชีวิตประเภทใด?',o:['ผู้ย่อยสลาย','ผู้บริโภค','ผู้ผลิต','สัตว์นักล่า'],a:2,h:'เป็นสิ่งมีชีวิตที่สร้างอาหารเองได้ด้วยการสังเคราะห์แสง',e:'ห่วงโซ่อาหารเริ่มจากผู้ผลิต (เช่นพืช) ซึ่งสร้างอาหารเองได้ แล้วถูกผู้บริโภคลำดับต่าง ๆ กินต่อไป'},
+  {d:'medium',q:'เสียงเป็นคลื่นชนิดใด และต้องอาศัยอะไรในการเดินทาง?',o:['คลื่นแม่เหล็กไฟฟ้า เดินทางในสุญญากาศได้','คลื่นกล ต้องอาศัยตัวกลาง','คลื่นนิ่ง ไม่ต้องมีตัวกลาง','คลื่นแสง เดินทางเป็นเส้นตรงเสมอ'],a:1,h:'เสียงเดินทางในอวกาศ (สุญญากาศ) ไม่ได้',e:'เสียงเป็นคลื่นกลที่ต้องอาศัยตัวกลาง เช่น อากาศ น้ำ หรือของแข็ง จึงเดินทางในสุญญากาศไม่ได้'},
+  {d:'medium',q:'การแบ่งเซลล์แบบไมโทซิส (Mitosis) ให้เซลล์ลูกกี่เซลล์ และมีโครโมโซมเป็นอย่างไรเทียบกับเซลล์แม่?',o:['2 เซลล์ โครโมโซมเท่าเซลล์แม่','4 เซลล์ โครโมโซมครึ่งหนึ่งของเซลล์แม่','2 เซลล์ โครโมโซมครึ่งหนึ่งของเซลล์แม่','4 เซลล์ โครโมโซมเท่าเซลล์แม่'],a:0,h:'ใช้ในการเจริญเติบโตและซ่อมแซมเซลล์ร่างกายทั่วไป ไม่ใช่การสร้างเซลล์สืบพันธุ์',e:'ไมโทซิสให้เซลล์ลูก 2 เซลล์ที่มีจำนวนโครโมโซมเท่ากับเซลล์แม่ ใช้ในการเจริญเติบโตและซ่อมแซมเนื้อเยื่อ'},
+  {d:'medium',q:'แรงเสียดทานมีทิศทางสัมพันธ์กับทิศการเคลื่อนที่ของวัตถุอย่างไร?',o:['ทิศเดียวกันเสมอ','ตั้งฉากเสมอ','ตรงข้ามกับทิศการเคลื่อนที่','ไม่มีทิศทางแน่นอน'],a:2,h:'แรงชนิดนี้ทำหน้าที่ต้านการเคลื่อนที่ของวัตถุ',e:'แรงเสียดทานมีทิศตรงข้ามกับทิศการเคลื่อนที่เสมอ ทำหน้าที่ต้านการเคลื่อนที่'},
+  {d:'hard',q:'ในกระบวนการพันธุกรรม หากผสมพันธุ์ Aa x Aa ลูกที่มีลักษณะด้อย (aa) มีโอกาสเกิดกี่เปอร์เซ็นต์?',o:['0%','25%','50%','75%'],a:1,h:'ลองเขียนตาราง Punnett square ระหว่าง Aa กับ Aa ดู',e:'จากตาราง Punnett square การผสม Aa x Aa จะได้อัตราส่วนจีโนไทป์ 1 AA : 2 Aa : 1 aa จึงมีโอกาสเป็น aa (ลักษณะด้อย) 25%'},
+  {d:'hard',q:'กฎทรงมวล (Law of Conservation of Mass) กล่าวไว้อย่างไร?',o:['มวลเพิ่มขึ้นหลังปฏิกิริยาเคมี','มวลรวมของสารก่อนและหลังปฏิกิริยาเท่ากัน','มวลลดลงเสมอเมื่อเกิดปฏิกิริยา','มวลไม่เกี่ยวข้องกับปฏิกิริยาเคมี'],a:1,h:'สสารไม่สูญหายไปไหน เพียงแค่เปลี่ยนรูป',e:'กฎทรงมวลระบุว่ามวลรวมของสารตั้งต้นเท่ากับมวลรวมของผลิตภัณฑ์ในปฏิกิริยาเคมี เพราะสสารไม่ถูกสร้างหรือทำลาย'},
+  {d:'hard',q:'จากสมการ v = fλ ถ้าความเร็วคลื่นคงที่ ความถี่กับความยาวคลื่นมีความสัมพันธ์กันอย่างไร?',o:['แปรผันตรงกัน','แปรผกผันกัน','ไม่มีความสัมพันธ์กัน','เท่ากันเสมอ'],a:1,h:'ถ้าตัวหนึ่งเพิ่มขึ้น อีกตัวต้องลดลงเพื่อให้ผลคูณ (ความเร็ว) คงที่',e:'เมื่อความเร็วคลื่นคงที่ ความถี่และความยาวคลื่นแปรผกผันกัน คือถ้าความถี่สูงขึ้น ความยาวคลื่นจะสั้นลง'},
+  {d:'hard',q:'การหักเหของแสง (Refraction) เกิดขึ้นเพราะสาเหตุใด?',o:['แสงกระทบวัตถุแล้วสะท้อนกลับ','แสงเปลี่ยนตัวกลางที่มีความหนาแน่นต่างกันทำให้ความเร็วเปลี่ยน','แสงถูกดูดกลืนโดยตัวกลาง','แสงแยกออกเป็นสีต่าง ๆ เสมอ'],a:1,h:'สังเกตได้เวลามองหลอดดูดในแก้วน้ำแล้วเห็นเหมือนมันหักงอ',e:'การหักเหเกิดเมื่อแสงเดินทางผ่านตัวกลางที่มีความหนาแน่นต่างกัน ทำให้ความเร็วแสงเปลี่ยนและทิศทางเบี่ยงไป'},
+  {d:'hard',q:'ออกซิเจนที่พืชปล่อยออกมาระหว่างการสังเคราะห์แสง มาจากการสลายสารใด?',o:['คาร์บอนไดออกไซด์ (CO2)','น้ำ (H2O)','กลูโคส (C6H12O6)','คลอโรฟิลล์'],a:1,h:'สารตั้งต้นชนิดนี้ถูกดูดจากรากขึ้นมาที่ใบ',e:'ออกซิเจนที่ปล่อยออกมาระหว่างการสังเคราะห์แสงมาจากการสลายโมเลกุลน้ำ (H2O) ในปฏิกิริยาแสง'},
+
+  /* --- ชุดคำถามอ้างอิงหัวข้อจากหนังสือเรียน "วิทยาศาสตร์กายภาพ ม.5 เล่ม 1" (สสวท.)
+     บทที่ 1 อากาศ / บทที่ 2 น้ำ / บทที่ 3 อาหาร / บทที่ 4 พลังงาน --- */
+  {d:'easy',q:'แก๊สชนิดใดเป็นองค์ประกอบส่วนใหญ่ของอากาศ (ประมาณ 78%)?',o:['ออกซิเจน','ไนโตรเจน','คาร์บอนไดออกไซด์','อาร์กอน'],a:1,h:'ไม่ใช่แก๊สที่เราหายใจเข้าไปใช้โดยตรง แต่มีปริมาณมากที่สุดในอากาศ',e:'อากาศประกอบด้วยไนโตรเจน (N2) มากที่สุดประมาณ 78% รองลงมาคือออกซิเจนประมาณ 21%'},
+  {d:'easy',q:'สิ่งมีชีวิตใช้แก๊สชนิดใดในกระบวนการหายใจเพื่อสร้างพลังงาน?',o:['ไนโตรเจน','ออกซิเจน','อาร์กอน','ฮีเลียม'],a:1,h:'เป็นแก๊สที่มีปริมาณรองลงมาจากไนโตรเจนในอากาศ',e:'สิ่งมีชีวิตใช้ออกซิเจนในกระบวนการหายใจระดับเซลล์เพื่อสลายอาหารให้ได้พลังงาน'},
+  {d:'easy',q:'อะตอมประกอบด้วยอนุภาคมูลฐานกี่ชนิด?',o:['2 ชนิด','3 ชนิด','4 ชนิด','5 ชนิด'],a:1,h:'ได้แก่ อนุภาคที่มีประจุบวก ประจุลบ และไม่มีประจุ',e:'อะตอมประกอบด้วยอนุภาคมูลฐาน 3 ชนิด คือ โปรตอน (ประจุบวก) นิวตรอน (เป็นกลาง) และอิเล็กตรอน (ประจุลบ)'},
+  {d:'medium',q:'อนุภาคใดในอะตอมที่มีประจุไฟฟ้าเป็นลบ?',o:['โปรตอน','นิวตรอน','อิเล็กตรอน','นิวเคลียส'],a:2,h:'อนุภาคชนิดนี้เคลื่อนที่อยู่รอบนิวเคลียส',e:'อิเล็กตรอนมีประจุไฟฟ้าเป็นลบ และเคลื่อนที่อยู่รอบนิวเคลียสของอะตอม'},
+  {d:'medium',q:'อนุภาคใดในอะตอมที่เป็นกลางทางไฟฟ้า (ไม่มีประจุ)?',o:['โปรตอน','นิวตรอน','อิเล็กตรอน','ไอออน'],a:1,h:'อยู่รวมกับโปรตอนภายในนิวเคลียส',e:'นิวตรอนเป็นอนุภาคที่เป็นกลางทางไฟฟ้า อยู่ภายในนิวเคลียสร่วมกับโปรตอน'},
+  {d:'easy',q:'ธาตุ (Element) หมายถึงสิ่งใด?',o:['สารบริสุทธิ์ที่ประกอบด้วยอะตอมชนิดเดียวกัน','สารที่เกิดจากธาตุตั้งแต่ 2 ชนิดขึ้นไปรวมกัน','ของผสมระหว่างสารหลายชนิด','สารที่ละลายน้ำได้ทุกชนิด'],a:0,h:'ไม่สามารถแยกสลายเป็นสารที่ง่ายกว่าได้ด้วยวิธีทางเคมีทั่วไป',e:'ธาตุคือสารบริสุทธิ์ที่ประกอบด้วยอะตอมชนิดเดียวกันทั้งหมด ไม่สามารถแยกเป็นสารอื่นได้ด้วยวิธีทางเคมี'},
+  {d:'medium',q:'แก๊สชนิดใดเป็นสาเหตุหลักของการเกิดฝนกรด?',o:['คาร์บอนมอนอกไซด์','ซัลเฟอร์ไดออกไซด์','ไนโตรเจน','ออกซิเจน'],a:1,h:'มักเกิดจากการเผาไหม้เชื้อเพลิงที่มีกำมะถันปนอยู่',e:'ซัลเฟอร์ไดออกไซด์ (SO2) จากการเผาไหม้เชื้อเพลิงทำปฏิกิริยากับไอน้ำในอากาศ กลายเป็นกรดที่ตกลงมาเป็นฝนกรด'},
+  {d:'medium',q:'สารโคเวเลนต์ส่วนใหญ่เกิดจากอะตอมของธาตุประเภทใดมารวมตัวกัน?',o:['โลหะกับโลหะ','โลหะกับอโลหะ','อโลหะกับอโลหะ','แก๊สเฉื่อยล้วน ๆ'],a:2,h:'เป็นธาตุกลุ่มเดียวกับที่ใช้อิเล็กตรอนร่วมกันแทนการให้-รับอิเล็กตรอน',e:'สารโคเวเลนต์เกิดจากอโลหะกับอโลหะใช้อิเล็กตรอนร่วมกัน ต่างจากสารประกอบไอออนิกที่เกิดจากโลหะกับอโลหะ'},
+  {d:'medium',q:'โมเลกุลของน้ำ (H2O) จัดเป็นโมเลกุลมีขั้ว (Polar) เพราะเหตุใด?',o:['อะตอมออกซิเจนกับไฮโดรเจนมีมวลเท่ากัน','การกระจายของประจุในโมเลกุลไม่สมมาตร','น้ำไม่มีพันธะโคเวเลนต์','น้ำไม่นำไฟฟ้า'],a:1,h:'ออกซิเจนดึงดูดอิเล็กตรอนมากกว่าไฮโดรเจน ทำให้ประจุกระจายไม่เท่ากัน',e:'น้ำมีขั้วเพราะออกซิเจนดึงอิเล็กตรอนเข้าหาตัวเองมากกว่า ทำให้ฝั่งออกซิเจนมีขั้วลบและฝั่งไฮโดรเจนมีขั้วบวก'},
+  {d:'hard',q:'เพราะเหตุใดน้ำแข็งจึงลอยอยู่บนผิวน้ำได้?',o:['น้ำแข็งมีอุณหภูมิต่ำกว่าน้ำ','โครงสร้างผลึกน้ำแข็งมีช่องว่างทำให้ความหนาแน่นน้อยกว่าน้ำของเหลว','น้ำแข็งมีมวลน้อยกว่าน้ำเสมอ','น้ำแข็งไม่มีขั้ว'],a:1,h:'เกี่ยวข้องกับการจัดเรียงโมเลกุลของน้ำตอนเป็นของแข็ง ทำให้เกิดช่องว่างมากขึ้น',e:'เมื่อน้ำแข็งตัว โมเลกุลน้ำจัดเรียงเป็นโครงผลึกที่มีช่องว่างมากกว่าสถานะของเหลว ทำให้ความหนาแน่นลดลงและลอยน้ำได้'},
+  {d:'medium',q:'สารประกอบไอออนิกเมื่อละลายน้ำแล้วนำไฟฟ้าได้ เพราะเหตุใด?',o:['อะตอมเปลี่ยนเป็นโมเลกุลโคเวเลนต์','แตกตัวเป็นไอออนที่เคลื่อนที่ได้อิสระในสารละลาย','น้ำเปลี่ยนสถานะเป็นไอ','ไม่มีอิเล็กตรอนเหลืออยู่เลย'],a:1,h:'กระแสไฟฟ้าในสารละลายเกิดจากอนุภาคที่มีประจุเคลื่อนที่ได้',e:'สารประกอบไอออนิกเมื่อละลายน้ำจะแตกตัวเป็นไอออนบวกและลบที่เคลื่อนที่ได้อิสระ จึงนำไฟฟ้าได้'},
+  {d:'easy',q:'หลักการละลาย "Like dissolves like" หมายความว่าอย่างไร?',o:['สารมีขั้วละลายในตัวทำละลายมีขั้ว สารไม่มีขั้วละลายในตัวทำละลายไม่มีขั้ว','สารทุกชนิดละลายน้ำได้เหมือนกันหมด','สารมีขั้วละลายเฉพาะในน้ำมันเท่านั้น','สารไม่มีขั้วละลายน้ำได้ดีที่สุด'],a:0,h:'น้ำเป็นตัวทำละลายมีขั้ว จึงละลายสารที่มีขั้วได้ดี เช่น เกลือ',e:'หลักการนี้หมายความว่าสารมีขั้วจะละลายได้ดีในตัวทำละลายที่มีขั้ว ส่วนสารไม่มีขั้วจะละลายได้ดีในตัวทำละลายที่ไม่มีขั้ว'},
+  {d:'easy',q:'ไขมันและน้ำมันให้พลังงานต่อกรัมเมื่อเทียบกับคาร์โบไฮเดรตและโปรตีนอย่างไร?',o:['ให้พลังงานต่อกรัมสูงกว่า','ให้พลังงานต่อกรัมต่ำกว่า','ให้พลังงานเท่ากันทุกชนิด','ไม่ให้พลังงานเลย'],a:0,h:'เป็นเหตุผลที่อาหารมันมักให้พลังงานสูงในปริมาณน้อย ๆ',e:'ไขมันและน้ำมันให้พลังงานสูงถึงประมาณ 9 กิโลแคลอรีต่อกรัม สูงกว่าคาร์โบไฮเดรตและโปรตีนที่ให้ประมาณ 4 กิโลแคลอรีต่อกรัม'},
+  {d:'medium',q:'หน่วยย่อยที่เล็กที่สุดของคาร์โบไฮเดรตเรียกว่าอะไร?',o:['กรดอะมิโน','มอโนแซ็กคาไรด์ (น้ำตาลโมเลกุลเดี่ยว)','กรดไขมัน','วิตามิน'],a:1,h:'เช่น กลูโคส ฟรุกโตส เป็นตัวอย่างของหน่วยย่อยนี้',e:'คาร์โบไฮเดรตประกอบขึ้นจากมอโนแซ็กคาไรด์ (น้ำตาลโมเลกุลเดี่ยว) เช่น กลูโคส เป็นหน่วยย่อยที่เล็กที่สุด'},
+  {d:'medium',q:'โปรตีนประกอบขึ้นจากหน่วยย่อยที่เรียกว่าอะไร?',o:['กรดอะมิโน','กรดไขมัน','น้ำตาลโมเลกุลเดี่ยว','กลีเซอรอล'],a:0,h:'หน่วยย่อยนี้เชื่อมต่อกันด้วยพันธะเพปไทด์',e:'โปรตีนประกอบขึ้นจากกรดอะมิโนหลายโมเลกุลเชื่อมต่อกันด้วยพันธะเพปไทด์'},
+  {d:'easy',q:'วิตามินกลุ่มใดละลายได้ในไขมัน?',o:['วิตามิน B และ C','วิตามิน A D E K','วิตามิน B1 B2 B6','วิตามิน C เท่านั้น'],a:1,h:'จำง่าย ๆ ด้วยตัวย่อ "A D E K"',e:'วิตามิน A, D, E, K เป็นวิตามินที่ละลายในไขมัน ส่วนวิตามิน B และ C ละลายในน้ำ'},
+  {d:'medium',q:'บรรจุภัณฑ์สำหรับอาหารที่ดีควรมีคุณสมบัติสำคัญที่สุดในข้อใด?',o:['มีสีสันสวยงามดึงดูดใจเป็นหลัก','ป้องกันการปนเปื้อนและรักษาคุณภาพอาหาร','มีราคาถูกที่สุดเท่านั้น','มีน้ำหนักเบาที่สุดเท่านั้น'],a:1,h:'หน้าที่หลักคือปกป้องอาหารจากเชื้อโรคและความเสื่อมสภาพ',e:'บรรจุภัณฑ์อาหารที่ดีต้องป้องกันการปนเปื้อนจากสิ่งแวดล้อมและช่วยรักษาคุณภาพของอาหารไว้ให้นานที่สุด'},
+  {d:'medium',q:'เชื้อเพลิงฟอสซิล เช่น ถ่านหินและปิโตรเลียม เกิดจากการทับถมของสิ่งใดเป็นเวลานาน?',o:['หินและแร่ธาตุ','ซากพืชและซากสัตว์','เกลือแร่ในทะเล','เถ้าภูเขาไฟ'],a:1,h:'ใช้เวลาหลายล้านปีในการเปลี่ยนซากสิ่งมีชีวิตให้กลายเป็นเชื้อเพลิง',e:'เชื้อเพลิงฟอสซิลเกิดจากซากพืชและซากสัตว์ที่ทับถมกันเป็นเวลานานหลายล้านปีภายใต้ความร้อนและความดัน'},
+  {d:'easy',q:'แบตเตอรี่เปลี่ยนพลังงานรูปใดให้เป็นพลังงานไฟฟ้า?',o:['พลังงานกล','พลังงานเคมี','พลังงานแสง','พลังงานนิวเคลียร์'],a:1,h:'เกิดจากปฏิกิริยาเคมีภายในเซลล์แบตเตอรี่',e:'แบตเตอรี่เปลี่ยนพลังงานเคมีที่สะสมไว้ภายในให้เป็นพลังงานไฟฟ้าผ่านปฏิกิริยาเคมี'},
+  {d:'hard',q:'รังสีจากสารกัมมันตรังสีชนิดใดมีอำนาจทะลุทะลวงสูงที่สุด?',o:['รังสีแอลฟา','รังสีบีตา','รังสีแกมมา','ไม่มีข้อใดถูก'],a:2,h:'ต้องใช้แผ่นตะกั่วหนาหรือคอนกรีตหนาจึงจะกั้นรังสีชนิดนี้ได้',e:'รังสีแกมมามีอำนาจทะลุทะลวงสูงที่สุดในบรรดารังสีแอลฟา บีตา และแกมมา ต้องใช้วัสดุหนาอย่างตะกั่วหรือคอนกรีตในการกั้น'},
+];
+
+/* ---------------------------------------------------------
+   6.5 SOUND EFFECTS  (synthesized via Web Audio — no asset files)
+--------------------------------------------------------- */
+const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+let soundOn = localStorage.getItem('scienceRunSound') !== 'off';
+
+function ensureAudio(){
+  if(!AudioCtxClass) return;
+  if(!actx){ try{ actx = new AudioCtxClass(); }catch(e){ actx=null; } }
+  if(actx && actx.state === 'suspended'){ actx.resume(); }
+}
+function beep({freq=440,duration=0.12,type='sine',vol=0.18,sweep=null,delay=0}){
+  if(!soundOn || !AudioCtxClass) return;
+  ensureAudio();
+  if(!actx) return;
+  const t0 = actx.currentTime + delay;
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  if(sweep!==null) osc.frequency.linearRampToValueAtTime(sweep, t0+duration);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.linearRampToValueAtTime(vol, t0+0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+  osc.connect(gain); gain.connect(actx.destination);
+  osc.start(t0); osc.stop(t0+duration+0.02);
+}
+function sfxClick(){ beep({freq:520,duration:.05,type:'square',vol:.10}); }
+function sfxJump(){ beep({freq:480,sweep:760,duration:.14,type:'square',vol:.14}); }
+function sfxDuck(){ beep({freq:220,duration:.09,type:'square',vol:.10}); }
+function sfxCoin(){ beep({freq:820,sweep:1200,duration:.10,type:'sine',vol:.16}); }
+function sfxQuestionCoin(){
+  beep({freq:600,sweep:900,duration:.13,type:'triangle',vol:.18});
+  beep({freq:950,sweep:1250,duration:.14,type:'triangle',vol:.14,delay:.09});
+}
+function sfxCorrect(){
+  beep({freq:660,duration:.10,type:'sine',vol:.18,delay:0});
+  beep({freq:880,duration:.12,type:'sine',vol:.18,delay:.10});
+  beep({freq:1180,duration:.18,type:'sine',vol:.18,delay:.20});
+}
+function sfxWrong(){ beep({freq:220,sweep:110,duration:.30,type:'sawtooth',vol:.16}); }
+function sfxHit(){ beep({freq:150,sweep:60,duration:.16,type:'square',vol:.22}); }
+function sfxHint(){ beep({freq:760,duration:.08,type:'sine',vol:.12}); }
+function sfxPowerup(){
+  [520,700,900,1150].forEach((f,i)=>beep({freq:f,duration:.11,type:'triangle',vol:.16,delay:i*0.07}));
+}
+function sfxCountdownTick(){ beep({freq:520,duration:.09,type:'square',vol:.16}); }
+function sfxCountdownGo(){ beep({freq:880,sweep:1300,duration:.22,type:'sine',vol:.2}); }
+function sfxGameOver(){
+  [440,370,300,220].forEach((f,i)=>beep({freq:f,duration:.32,type:'sawtooth',vol:.15,delay:i*0.16}));
+}
+
+function updateMuteUI(){
+  const icon = soundOn ? '🔊' : '🔇';
+  const mb = document.getElementById('muteBtn');
+  const mmb = document.getElementById('menuMuteBtn');
+  if(mb) mb.textContent = icon;
+  if(mmb) mmb.textContent = soundOn ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  localStorage.setItem('scienceRunSound', soundOn ? 'on':'off');
+  updateMuteUI();
+  if(soundOn){ ensureAudio(); sfxClick(); }
+}
+document.getElementById('muteBtn').onclick = toggleSound;
+document.getElementById('menuMuteBtn').onclick = toggleSound;
+updateMuteUI();
+
+/* generic click tick for every button in the UI, unlocks audio on first tap */
+document.addEventListener('click', e=>{
+  ensureAudio();
+  const btn = e.target.closest('button');
+  if(btn) sfxClick();
+}, true);
+
+/* ---------------------------------------------------------
+   7. GAME ENGINE
+--------------------------------------------------------- */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W=0, H=0, DPR=1;
+
+function resizeCanvas(){
+  const wrap = document.getElementById('gameWrap');
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = wrap.clientWidth; H = wrap.clientHeight;
+  canvas.width = W*DPR; canvas.height = H*DPR;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  if(game) game.groundY = H*0.78;
+}
+window.addEventListener('resize', resizeCanvas);
+
+const COLOR_MAP = {color_default:'#7bffb0', color_orange:'#ffb547', color_blue:'#5cc8ff', color_pink:'#ff6fae'};
+
+let game = null;
+let usedQuestionIdx = [];
+let rafId = null;
+
+function freshGameState(){
+  const groundY = H*0.78;
+  return {
+    groundY,
+    player:{x:70, y:groundY-46, w:34, h:46, vy:0, jumping:false, ducking:false, animT:0},
+    gravity:2000,
+    jumpForce:-820,
+    speed:300,
+    baseSpeed:300,
+    maxSpeed:620,
+    distance:0,
+    score:0,
+    coinsCollected:0,
+    hearts:3,
+    hints: 3, // hints always start fresh each run — don't carry over used hints from a previous life
+    obstacles:[],
+    coins:[],
+    powerups:[],
+    particles:[],
+    creatureOffset:0,      // 0 = far behind, grows toward 1 = caught
+    spawnTimer:0,
+    coinSpawnTimer:0,
+    powerupSpawnTimer: 14 + Math.random()*8,
+    nextObstacleGap: 900,
+    running:true,
+    paused:false,
+    gameOver:false,
+    correctThisRun:0,
+    lastTime:0,
+    hitFlash:0,
+    flying:false,
+    flyTimer:0,
+    flyDuration: getJetpackDuration(),
+  };
+}
+
+const THEME_MAP = {
+  theme_default:{sky1:'#1c3f52',sky2:'#123241',sky3:'#0a1e28',wall:'#7bffb0',ground:'#0e2530',groundLine:'rgba(123,255,176,.35)'},
+  theme_night:  {sky1:'#0b1220',sky2:'#0a1420',sky3:'#050a12',wall:'#5c7dff',ground:'#0a0f1a',groundLine:'rgba(92,125,255,.4)'},
+  theme_neon:   {sky1:'#2a0a3a',sky2:'#1a0a2e',sky3:'#0d0518',wall:'#ff6fe0',ground:'#160a26',groundLine:'rgba(255,111,224,.45)'},
+};
+
+const OBSTACLE_TYPES = [
+  {type:'box', w:36, h:38, color:'#c98a34', label:'📦'},
+  {type:'equip', w:40, h:50, color:'#5cc8ff', label:'⚗️'},
+  {type:'chem', w:34, h:34, color:'#7bffb0', label:'🧫'},
+  {type:'tool', w:44, h:30, color:'#ff9f43', label:'🔧'},
+];
+
+function startGame(){
+  // NOTE: usedQuestionIdx is intentionally NOT reset here — it persists
+  // across deaths/restarts so the same few "easy" questions don't repeat
+  // every time you play again. It only resets once the whole question
+  // bank has been used up (see pickQuestion()).
+  game = freshGameState();
+  showScreen('gameScreen');
+  resizeCanvas();
+  updateHUD();
+  document.getElementById('pauseOverlay').classList.remove('active');
+  document.getElementById('gameOverOverlay').classList.remove('active');
+  document.getElementById('questionOverlay').classList.remove('active');
+  document.getElementById('countdownOverlay').classList.remove('active');
+  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval = null; }
+  game.lastTime = performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+}
+
+function updateHUD(){
+  document.getElementById('hudScore').textContent = Math.floor(game.score);
+  document.getElementById('hudCoins').textContent = game.coinsCollected;
+  document.getElementById('hudHint').textContent = game.hints;
+  const heartsEl = document.getElementById('hearts');
+  let h='';
+  for(let i=0;i<3;i++) h += (i<game.hearts?'❤️':'🖤');
+  heartsEl.textContent = h;
+  const jp = document.getElementById('jetpackHud');
+  if(game.flying){
+    jp.style.display='flex';
+    document.getElementById('hudJetpack').textContent = Math.max(0,Math.ceil(game.flyTimer));
+  } else {
+    jp.style.display='none';
+  }
+}
+
+/* ---- input ---- */
+function doJump(){
+  if(!game || game.paused || game.gameOver || game.flying) return;
+  if(!game.player.jumping){
+    game.player.vy = game.jumpForce;
+    game.player.jumping = true;
+    sfxJump();
+  }
+}
+function startDuck(){
+  if(!game || game.paused || game.gameOver || game.flying) return;
+  if(!game.player.ducking) sfxDuck();
+  game.player.ducking = true;
+}
+function endDuck(){
+  if(!game) return;
+  game.player.ducking = false;
+}
+window.addEventListener('keydown', e=>{
+  if(document.getElementById('gameScreen').classList.contains('active')){
+    if(['ArrowUp','KeyW'].includes(e.code)){ e.preventDefault(); doJump(); }
+    if(['ArrowDown','KeyS'].includes(e.code)){ e.preventDefault(); startDuck(); }
+  }
+});
+window.addEventListener('keyup', e=>{
+  if(['ArrowDown','KeyS'].includes(e.code)) endDuck();
+});
+document.getElementById('btnJump').addEventListener('touchstart', ev=>{ev.preventDefault();doJump();});
+document.getElementById('btnJump').addEventListener('mousedown', doJump);
+document.getElementById('btnDown').addEventListener('touchstart', ev=>{ev.preventDefault();startDuck();});
+document.getElementById('btnDown').addEventListener('touchend', ev=>{ev.preventDefault();endDuck();});
+document.getElementById('btnDown').addEventListener('mousedown', startDuck);
+document.getElementById('btnDown').addEventListener('mouseup', endDuck);
+canvas.addEventListener('touchstart', ev=>{ ev.preventDefault(); doJump(); }, {passive:false});
+
+/* ---- pause ---- */
+document.getElementById('pauseBtn').onclick = openPause;
+function openPause(){
+  if(!game || game.gameOver) return;
+  game.paused = true;
+  document.getElementById('pauseOverlay').classList.add('active');
+}
+document.getElementById('resumeBtn').onclick = ()=>{
+  document.getElementById('pauseOverlay').classList.remove('active');
+  game.paused = false;
+  game.lastTime = performance.now();
+};
+document.getElementById('pauseHowToBtn').onclick = ()=>{ cameFromPause=true; showScreen('howtoScreen'); };
+document.getElementById('pauseMenuBtn').onclick = ()=>{
+  cancelAnimationFrame(rafId);
+  game = null;
+  refreshMenuUI();
+  showScreen('menuScreen');
+};
+
+function closeOverlay(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ---- main loop ---- */
+function loop(t){
+  if(!game){ return; }
+  if(game.gameOver){ rafId=null; return; }
+  const dt = Math.min((t - game.lastTime)/1000, 0.033);
+  game.lastTime = t;
+  if(!game.paused){
+    update(dt);
+  }
+  render();
+  rafId = requestAnimationFrame(loop);
+}
+
+function update(dt){
+  const g = game;
+  // speed ramps with distance
+  g.speed = Math.min(g.maxSpeed, g.baseSpeed + g.distance*0.02);
+  g.distance += g.speed*dt;
+  g.score += g.speed*dt*0.02; // small score for distance
+
+  // player physics
+  const p = g.player;
+  p.animT += dt;
+  if(g.flying){
+    g.flyTimer -= dt;
+    p.ducking = false;
+    p.jumping = false;
+    p.vy = 0;
+    p.h = 46;
+    p.y = (g.groundY - 150) + Math.sin(p.animT*4)*8;
+    if(g.flyTimer <= 0){ g.flying = false; }
+  } else {
+    p.vy += g.gravity*dt;
+    p.y += p.vy*dt;
+    const standH = 46, duckH = 30;
+    const targetH = p.ducking && !p.jumping ? duckH : standH;
+    p.h = targetH;
+    const floorY = g.groundY - p.h;
+    if(p.y >= floorY){ p.y = floorY; p.vy = 0; p.jumping=false; }
+  }
+
+  // spawn obstacles — time-based interval so gaps stay fair as speed ramps up
+  // (a fixed pixel gap gets crowded at high speed since more distance is
+  // covered per second; timing in seconds keeps reaction time consistent)
+  g.spawnTimer -= dt;
+  if(g.spawnTimer <= 0){
+    spawnObstacle();
+    const interval = Math.max(1.15, 1.9 - g.distance/9000);
+    g.spawnTimer = interval + Math.random()*0.55;
+  }
+  // spawn coins
+  g.coinSpawnTimer -= dt;
+  if(g.coinSpawnTimer <= 0){
+    const spawned = spawnCoinCluster();
+    // if we skipped this attempt (too close to an obstacle), retry soon
+    // instead of waiting out the full interval, so coins don't end up rare
+    g.coinSpawnTimer = spawned ? (1.3 + Math.random()*0.9) : 0.25;
+  }
+  // spawn jetpack power-up (rare)
+  g.powerupSpawnTimer -= dt;
+  if(g.powerupSpawnTimer <= 0 && !g.flying && g.powerups.length===0){
+    spawnPowerup();
+    g.powerupSpawnTimer = 17 + Math.random()*10;
+  }
+
+  // move + collide obstacles
+  for(let i=g.obstacles.length-1;i>=0;i--){
+    const o = g.obstacles[i];
+    o.x -= g.speed*dt;
+    if(o.x + o.w < -20){ g.obstacles.splice(i,1); continue; }
+    if(!g.flying && !o.hit && rectsOverlap(p.x,p.y,p.w,p.h, o.x,g.groundY-o.h,o.w,o.h)){
+      o.hit = true;
+      onHit();
+    }
+  }
+  // move + collide coins
+  for(let i=g.coins.length-1;i>=0;i--){
+    const c = g.coins[i];
+    c.x -= g.speed*dt;
+    c.spin += dt*6;
+    if(c.x < -20){ g.coins.splice(i,1); continue; }
+    if(!c.collected){
+      const dx = (p.x+p.w/2)-c.x, dy=(p.y+p.h/2)-c.y;
+      if(Math.sqrt(dx*dx+dy*dy) < 30){
+        c.collected = true;
+        onCoinCollect(c);
+        g.coins.splice(i,1);
+      }
+    }
+  }
+  // move + collide jetpack power-ups
+  for(let i=g.powerups.length-1;i>=0;i--){
+    const pu = g.powerups[i];
+    pu.x -= g.speed*dt;
+    pu.bob += dt*4;
+    if(pu.x < -30){ g.powerups.splice(i,1); continue; }
+    if(!pu.collected){
+      const puY = pu.y + Math.sin(pu.bob)*8;
+      const dx=(p.x+p.w/2)-pu.x, dy=(p.y+p.h/2)-puY;
+      if(Math.sqrt(dx*dx+dy*dy) < 32){
+        pu.collected = true;
+        activateJetpack();
+        g.powerups.splice(i,1);
+      }
+    }
+  }
+  // particles
+  for(let i=g.particles.length-1;i>=0;i--){
+    const pt = g.particles[i];
+    pt.life -= dt; pt.x += pt.vx*dt; pt.y += pt.vy*dt; pt.vy += 900*dt;
+    if(pt.life<=0) g.particles.splice(i,1);
+  }
+  if(g.hitFlash>0) g.hitFlash -= dt*2;
+
+  updateHUD();
+}
+
+function spawnObstacle(){
+  const spawnX = W+40;
+  // safety: never stack a new obstacle too close behind the last one,
+  // guarantees enough room to react and jump/duck cleanly
+  const last = game.obstacles[game.obstacles.length-1];
+  if(last && (spawnX - last.x) < 320) return;
+  // keep obstacles from landing right on top of a coin cluster
+  const lastCoin = game.coins[game.coins.length-1];
+  if(lastCoin && Math.abs(spawnX - lastCoin.x) < 140) return;
+  const t = OBSTACLE_TYPES[Math.floor(Math.random()*OBSTACLE_TYPES.length)];
+  const low = Math.random()<0.35; // some obstacles require ducking (placed higher)
+  const h = t.h;
+  game.obstacles.push({x:spawnX, w:t.w, h, color:t.color, label:t.label, hit:false, high:low});
+}
+
+function spawnCoinCluster(){
+  const startX = W+60;
+  // keep coins clear of obstacles so players aren't forced to choose
+  // between dodging and collecting in the same spot
+  const lastObstacle = game.obstacles[game.obstacles.length-1];
+  if(lastObstacle && Math.abs(startX - lastObstacle.x) < 140) return false;
+
+  const count = 2 + Math.floor(Math.random()*4); // 2-5 coins per cluster
+  // coins sit low, near running height, so they're grabbable without jumping
+  const lowY = game.groundY - 40 - Math.random()*16;
+  // while flying, spawn the coins up at jetpack altitude so there's still
+  // something to collect while airborne
+  const flyY = (game.groundY - 150) + (Math.random()*24 - 12);
+  const baseY = game.flying ? flyY : lowY;
+
+  // at most ONE question coin per cluster, and less often overall than before
+  const questionChance = 0.07 + Math.min(0.06, game.score/6000); // ~7%-13%
+  let questionAssigned = false;
+  for(let i=0;i<count;i++){
+    let isQuestion = false;
+    if(!questionAssigned && Math.random() < questionChance){
+      isQuestion = true;
+      questionAssigned = true;
+    }
+    game.coins.push({
+      x:startX + i*46,
+      y:baseY + Math.sin(i*0.8)*8,
+      spin:Math.random()*6,
+      type: isQuestion ? 'question':'normal',
+      collected:false
+    });
+  }
+  return true;
+}
+
+function spawnPowerup(){
+  // jetpack pickup floats high, near jump-apex height, above the low-lying coins
+  game.powerups.push({
+    x: W+60,
+    y: game.groundY - 168,
+    bob: Math.random()*6,
+    collected:false
+  });
+}
+function activateJetpack(){
+  game.flying = true;
+  game.flyDuration = getJetpackDuration();
+  game.flyTimer = game.flyDuration;
+  spawnParticles(game.player.x+game.player.w/2, game.player.y+game.player.h/2, '#5cc8ff');
+  sfxPowerup();
+}
+
+function rectsOverlap(x1,y1,w1,h1,x2,y2,w2,h2){
+  return x1 < x2+w2 && x1+w1 > x2 && y1 < y2+h2 && y1+h1 > y2;
+}
+
+function onHit(){
+  sfxHit();
+  loseHeart();
+  spawnParticles(game.player.x+game.player.w/2, game.player.y+game.player.h/2, '#ff5d5d');
+  game.hitFlash = 1;
+}
+
+function loseHeart(){
+  game.hearts -= 1;
+  game.creatureOffset = Math.min(1, game.creatureOffset + 0.34);
+  if(game.hearts <= 0){
+    triggerGameOver();
+  }
+}
+
+function spawnParticles(x,y,color){
+  for(let i=0;i<10;i++){
+    game.particles.push({
+      x,y,vx:(Math.random()-0.5)*300,vy:(Math.random()-0.8)*300,
+      life:0.6, color
+    });
+  }
+}
+
+let pendingCoin = null;
+function onCoinCollect(c){
+  if(c.type === 'normal'){
+    game.coinsCollected += 1;
+    game.score += 10;
+    spawnParticles(c.x,c.y,'#ffd76b');
+    sfxCoin();
+  } else {
+    // question coin -> pause and ask
+    sfxQuestionCoin();
+    pendingCoin = c;
+    game.paused = true;
+    openQuestion();
+  }
+}
+
+function triggerGameOver(){
+  game.gameOver = true;
+  game.running = false;
+  profile.gamesPlayed += 1;
+  profile.coins += game.coinsCollected;
+  let isNew = false;
+  const finalScore = Math.floor(game.score);
+  if(finalScore > profile.bestScore){ profile.bestScore = finalScore; isNew = true; }
+  persistProfile();
+
+  document.getElementById('goScore').textContent = finalScore;
+  document.getElementById('goBest').textContent = profile.bestScore;
+  document.getElementById('goCoins').textContent = profile.coins;
+  document.getElementById('goCorrect').textContent = game.correctThisRun;
+  document.getElementById('newBestTag').style.display = isNew ? 'block':'none';
+  sfxGameOver();
+  setTimeout(()=> document.getElementById('gameOverOverlay').classList.add('active'), 350);
+}
+
+document.getElementById('playAgainBtn').onclick = ()=>{ closeOverlay('gameOverOverlay'); startGame(); };
+document.getElementById('goMenuBtn').onclick = ()=>{
+  closeOverlay('gameOverOverlay');
+  cancelAnimationFrame(rafId);
+  game = null;
+  refreshMenuUI();
+  showScreen('menuScreen');
+};
+
+/* ---------------------------------------------------------
+   8. QUESTION FLOW
+--------------------------------------------------------- */
+let currentQuestion = null;
+let hintUsedThisQuestion = false;
+let answeredThisQuestion = false;
+
+function pickQuestion(){
+  // difficulty weighting based on score
+  const score = game.score;
+  let pool;
+  const roll = Math.random();
+  let targetDiff;
+  if(score < 300){ targetDiff = roll<0.7?'easy':'medium'; }
+  else if(score < 900){ targetDiff = roll<0.45?'easy':(roll<0.85?'medium':'hard'); }
+  else { targetDiff = roll<0.25?'easy':(roll<0.6?'medium':'hard'); }
+
+  let available = QUESTION_BANK.map((q,i)=>i).filter(i=>!usedQuestionIdx.includes(i));
+  if(available.length===0){ usedQuestionIdx=[]; available = QUESTION_BANK.map((q,i)=>i); }
+
+  let candidates = available.filter(i=>QUESTION_BANK[i].d===targetDiff);
+  if(candidates.length===0) candidates = available;
+  const idx = candidates[Math.floor(Math.random()*candidates.length)];
+  usedQuestionIdx.push(idx);
+  return {idx, q:QUESTION_BANK[idx]};
+}
+
+function openQuestion(){
+  const picked = pickQuestion();
+  currentQuestion = picked;
+  hintUsedThisQuestion = false;
+  answeredThisQuestion = false;
+  const q = picked.q;
+  const badge = document.getElementById('qDiffBadge');
+  badge.className = 'q-diff diff-'+q.d;
+  badge.textContent = q.d.toUpperCase();
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qHintText').textContent = '';
+  document.getElementById('qHintCount').textContent = game.hints;
+  document.getElementById('qHintBtn').disabled = game.hints<=0;
+  document.getElementById('qHintBtn').style.opacity = game.hints<=0 ? .4 : 1;
+  document.getElementById('qFeedback').style.display='none';
+
+  const optWrap = document.getElementById('qOptions');
+  optWrap.innerHTML = '';
+  q.o.forEach((optText, i)=>{
+    const b = document.createElement('button');
+    b.className='q-option';
+    b.textContent = optText;
+    b.onclick = ()=> answerQuestion(i);
+    optWrap.appendChild(b);
+  });
+  document.getElementById('questionOverlay').classList.add('active');
+}
+
+document.getElementById('qHintBtn').onclick = ()=>{
+  if(game.hints<=0 || hintUsedThisQuestion) return;
+  sfxHint();
+  game.hints -= 1;
+  hintUsedThisQuestion = true;
+  document.getElementById('qHintCount').textContent = game.hints;
+  document.getElementById('qHintText').textContent = '💡 '+currentQuestion.q.h;
+  document.getElementById('qHintBtn').disabled = true;
+  document.getElementById('qHintBtn').style.opacity = .4;
+  updateHUD();
+};
+
+function answerQuestion(choiceIdx){
+  if(answeredThisQuestion) return;
+  answeredThisQuestion = true;
+  const q = currentQuestion.q;
+  const opts = document.querySelectorAll('.q-option');
+  opts.forEach((el,i)=>{
+    el.onclick = null;
+    if(i===q.a) el.classList.add('correct');
+    else if(i===choiceIdx) el.classList.add('wrong');
+  });
+  const isCorrect = choiceIdx === q.a;
+  const title = document.getElementById('qFeedbackTitle');
+  if(isCorrect){
+    title.textContent = '✅ CORRECT!';
+    title.style.color = 'var(--glow-green)';
+    let gained = 100;
+    if(!hintUsedThisQuestion) gained += 20; // small bonus for no hint
+    game.score += gained;
+    game.correctThisRun += 1;
+    profile.correct += 1;
+    sfxCorrect();
+  } else {
+    title.textContent = '❌ INCORRECT';
+    title.style.color = 'var(--danger)';
+    profile.incorrect += 1;
+    sfxWrong();
+  }
+  document.getElementById('qExplain').textContent = (isCorrect?'':'คำตอบที่ถูกคือ: '+q.o[q.a]+'. ') + q.e;
+  document.getElementById('qFeedback').style.display='block';
+  persistProfile();
+
+  if(!isCorrect){
+    // heart loss handled on continue to avoid double game-over triggers mid animation
+    game._pendingHeartLoss = true;
+  }
+}
+
+document.getElementById('qContinueBtn').onclick = ()=>{
+  document.getElementById('questionOverlay').classList.remove('active');
+  if(game._pendingHeartLoss){
+    game._pendingHeartLoss = false;
+    loseHeart();
+  }
+  pendingCoin = null;
+  updateHUD();
+  if(!game.gameOver){
+    startCountdown();
+  }
+};
+
+let countdownInterval = null;
+function startCountdown(){
+  const overlay = document.getElementById('countdownOverlay');
+  const text = document.getElementById('countdownText');
+  overlay.classList.add('active');
+  let n = 3;
+  text.textContent = n;
+  text.style.animation='none'; void text.offsetWidth; text.style.animation='countPulse .5s ease';
+  sfxCountdownTick();
+  if(countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(()=>{
+    n -= 1;
+    if(n > 0){
+      text.textContent = n;
+      text.style.color = 'var(--glow-green)';
+      text.style.animation='none'; void text.offsetWidth; text.style.animation='countPulse .5s ease';
+      sfxCountdownTick();
+    } else if(n === 0){
+      text.textContent = 'GO!';
+      text.style.color = 'var(--coin)';
+      text.style.animation='none'; void text.offsetWidth; text.style.animation='countPulse .5s ease';
+      sfxCountdownGo();
+    } else {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      overlay.classList.remove('active');
+      if(game && !game.gameOver){
+        game.paused = false;
+        game.lastTime = performance.now();
+      }
+    }
+  }, 600);
+}
+
+/* ---------------------------------------------------------
+   9. RENDER
+--------------------------------------------------------- */
+function render(){
+  const g = game;
+  ctx.clearRect(0,0,W,H);
+
+  // lab background bands (colors follow the equipped theme)
+  const theme = THEME_MAP[profile.equipped.theme] || THEME_MAP.theme_default;
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,theme.sky1); grad.addColorStop(0.65,theme.sky2); grad.addColorStop(1,theme.sky3);
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+
+  // parallax tiles (lab wall panels)
+  ctx.save();
+  ctx.globalAlpha = .18;
+  ctx.strokeStyle = theme.wall;
+  const tileW = 120;
+  const off = (g.distance*0.4) % tileW;
+  for(let x=-off; x<W; x+=tileW){
+    ctx.strokeRect(x, H*0.1, tileW-6, H*0.55);
+  }
+  ctx.restore();
+
+  // ground line
+  ctx.fillStyle = theme.ground;
+  ctx.fillRect(0, g.groundY, W, H-g.groundY);
+  ctx.strokeStyle=theme.groundLine;
+  ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,g.groundY); ctx.lineTo(W,g.groundY); ctx.stroke();
+
+  // creature chasing (behind player, left side)
+  drawCreature(g);
+
+  // obstacles
+  g.obstacles.forEach(o=>{
+    const y = g.groundY - o.h;
+    ctx.save();
+    ctx.translate(o.x+o.w/2, y+o.h/2);
+    ctx.font = (o.w*0.9)+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(o.label, 0, 0);
+    ctx.restore();
+  });
+
+  // jetpack power-ups
+  g.powerups.forEach(pu=>{
+    const yy = pu.y + Math.sin(pu.bob)*8;
+    ctx.save();
+    ctx.translate(pu.x, yy);
+    ctx.font='30px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.shadowColor='#5cc8ff'; ctx.shadowBlur=14;
+    ctx.fillText('🚀', 0, 0);
+    ctx.restore();
+  });
+
+  // coins
+  g.coins.forEach(c=>{
+    const scaleX = Math.abs(Math.cos(c.spin));
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.scale(Math.max(0.25,scaleX),1);
+    ctx.beginPath();
+    ctx.arc(0,0,13,0,Math.PI*2);
+    ctx.fillStyle = '#ffd76b';
+    ctx.fill();
+    ctx.strokeStyle='#c98a34'; ctx.lineWidth=2; ctx.stroke();
+    ctx.restore();
+  });
+
+  // player
+  drawPlayer(g);
+
+  // particles
+  g.particles.forEach(pt=>{
+    ctx.globalAlpha = Math.max(0,pt.life/0.6);
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x-3,pt.y-3,6,6);
+    ctx.globalAlpha = 1;
+  });
+
+  // hit flash
+  if(g.hitFlash>0){
+    ctx.fillStyle = `rgba(255,93,93,${g.hitFlash*0.35})`;
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawPlayer(g){
+  const p = g.player;
+  const color = COLOR_MAP[profile.equipped.color] || '#7bffb0';
+  const bob = p.jumping ? 0 : Math.sin(p.animT*14)*2;
+  ctx.save();
+  ctx.translate(p.x+p.w/2, p.y+p.h/2+bob);
+  // trail effect
+  if(profile.equipped.trail === 'trail_spark'){
+    ctx.fillStyle='rgba(255,215,107,.5)';
+    ctx.beginPath(); ctx.arc(-p.w/2-6,4,4,0,Math.PI*2); ctx.fill();
+  } else if(profile.equipped.trail === 'trail_smoke'){
+    ctx.fillStyle='rgba(180,220,210,.25)';
+    ctx.beginPath(); ctx.arc(-p.w/2-8,2,8,0,Math.PI*2); ctx.fill();
+  }
+  // body
+  ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(0,0,0,.35)';
+  ctx.lineWidth=2;
+  const bw=p.w, bh=p.h;
+  roundRect(ctx, -bw/2, -bh/2, bw, bh, 8);
+  ctx.fill(); ctx.stroke();
+  // visor / face
+  ctx.fillStyle='#0c1b24';
+  roundRect(ctx, -bw/2+6, -bh/2+6, bw-12, bh*0.35, 5);
+  ctx.fill();
+  // legs anim
+  if(!p.jumping && !p.ducking && !g.flying){
+    const legOff = Math.sin(p.animT*18)*6;
+    ctx.strokeStyle=color; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(-6,bh/2); ctx.lineTo(-6+legOff, bh/2+8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(6,bh/2); ctx.lineTo(6-legOff, bh/2+8); ctx.stroke();
+  }
+  // jetpack flame while flying
+  if(g.flying){
+    const flick = 14 + Math.sin(performance.now()/50)*6;
+    ctx.save();
+    ctx.translate(0, bh/2);
+    ctx.font = flick+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText('🔥', 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawCreature(g){
+  // creature approaches from far-left toward the player as creatureOffset increases
+  const baseX = -60;
+  const maxX = g.player.x - 60;
+  const x = baseX + (maxX-baseX)*g.creatureOffset;
+  const y = g.groundY - 44;
+  const wob = Math.sin(performance.now()/180)*4;
+  ctx.save();
+  ctx.globalAlpha = 0.55 + g.creatureOffset*0.4;
+  ctx.translate(x, y+wob);
+  ctx.font='40px serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('👾', 0, 0);
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+/* ---------------------------------------------------------
+   10. prevent page scroll / pinch on mobile during play
+--------------------------------------------------------- */
+document.addEventListener('touchmove', e=>{
+  if(document.getElementById('gameScreen').classList.contains('active')) e.preventDefault();
+}, {passive:false});
+
+</script>
+</body>
+</html>
