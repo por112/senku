@@ -3,12 +3,12 @@
   "name": "Dr.Senku",
   "icons": [
     {
-      "src": "33-192.png",
+      "src": "33-192x192.png",
       "type": "PNG File",
       "sizes": "192x192"
     },
     {
-      "src": "44-512.png",
+      "src": "44-512x512.png",
       "type": "PNG File",
       "sizes": "512x512"
     }
