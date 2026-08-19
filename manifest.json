@@ -6,11 +6,13 @@
       "src": "33-192x192.png",
       "type": "PNG File",
       "sizes": "192x192"
+   "purpose": "any maskable"
     },
     {
       "src": "44-512x512.png",
       "type": "PNG File",
       "sizes": "512x512"
+    "purpose": "any maskable"
     }
   ],
   "start_url": "/",
